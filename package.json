@@ -1,27 +1,40 @@
 {
   "name": "surmon.me",
   "version": "1.0.0",
-  "description": "Nuxt.js project",
-  "author": "surmon <surmon@foxmail.com>",
+  "description": "Surmon.me blog",
+  "author": {
+    "name": "Surmon",
+    "email": "surmon@foxmail.com",
+    "url": "http://surmon.me"
+  },
   "private": false,
   "dependencies": {
-    "axios": "^0.15.3",
+    "axios": "^0.16.2",
     "bezier-easing": "^2.0.3",
-    "clipboard": "^1.5.16",
+    "clipboard": "^1.7.1",
     "cross-env": "^3.1.4",
+    "emoji-233333": "^0.2.2",
     "express": "^4.14.1",
     "gravatar": "^1.6.0",
     "highlight.js": "^9.9.0",
-    "howler": "^2.0.3",
+    "howler": "^2.0.4",
     "marked": "^0.3.6",
-    "nuxt": "^0.10.7",
+    "node-uuid": "^1.4.8",
+    "nuxt": "^1.0.0-rc11",
     "offline-plugin": "^4.8.1",
     "particles.js": "^2.0.0",
-    "vue-awesome-swiper": "^2.3.8"
+    "simplewebrtc": "^3.0.1",
+    "socket.io": "^2.0.3",
+    "socket.io-client": "^2.0.3",
+    "vue": "^2.4.3",
+    "vue-awesome-swiper": "^3.0.3",
+    "vuex": "^2.4.0",
+    "yargs": "^10.0.3"
   },
   "scripts": {
     "precommit": "npm run lint",
-    "dev": "nodemon --exec node server.js",
+    "dev": "node server.js",
+    "dev:tool": "devtool ./server.js --watch",
     "build": "cross-env NODE_ENV=production nuxt build",
     "start": "cross-env NODE_ENV=production node server.js",
     "analyz": "cross-env NODE_ENV=production nuxt build --analyzer",
@@ -38,7 +51,7 @@
     "eslint-plugin-promise": "^3.4.0",
     "eslint-plugin-standard": "^2.0.1",
     "html-minifier": "^3.5.0",
-    "node-sass": "^4.5.0",
+    "node-sass": "^4.6.0",
     "sass-loader": "^4.1.1"
   }
 }

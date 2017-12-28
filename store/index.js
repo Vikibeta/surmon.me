@@ -4,7 +4,9 @@
 *
 */
 
-import Service from '~plugins/axios'
+import Service from '~/plugins/axios'
+import EventBus from '~/utils/event-bus'
+import UaParse from '~/utils/ua-parse'
 
 // global actions
 export const actions = {
@@ -13,7 +15,10 @@ export const actions = {
   nuxtServerInit(store, { params, route, isServer, req }) {
     // 检查设备类型
     const userAgent = isServer ? req.headers['user-agent'] : navigator.userAgent
-    const isMobile = /(iPhone|iPod|Opera Mini|Android.*Mobile|NetFront|PSP|BlackBerry|Windows Phone)/ig.test(userAgent)
+    const { isMobile, isOpera, isIE, isSafari, isEdge, isFF, isBB, isChrome, isMaxthon, isIos } = UaParse(userAgent)
+    const mustJpg = (isIos || isFF || isMaxthon || isSafari || isBB || isIE || isEdge)
+    store.commit('option/SET_IMG_EXT', mustJpg ? 'jpeg' : 'webp')
+    // console.log(mustJpg ? 'jpeg' : 'webp')
     store.commit('option/SET_MOBILE_LAYOUT', isMobile)
     store.commit('option/SET_USER_AGENT', userAgent)
     const initAppData = [
@@ -42,7 +47,7 @@ export const actions = {
     commit('option/REQUEST_ADMIN_INFO')
     return Service.get('/auth')
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('option/REQUEST_ADMIN_INFO_SUCCESS', response.data)
       if(!success) commit('option/REQUEST_ADMIN_INFO_FAILURE')
     }, err => {
@@ -55,7 +60,7 @@ export const actions = {
     commit('option/REQUEST_GLOBAL_OPTIONS')
     return Service.get('/option')
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('option/REQUEST_GLOBAL_OPTIONS_SUCCESS', response.data)
       if(!success) commit('option/REQUEST_GLOBAL_OPTIONS_FAILURE')
     }, err => {
@@ -68,7 +73,7 @@ export const actions = {
     commit('tag/REQUEST_LIST')
     return Service.get('/tag', { params })
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('tag/GET_LIST_SUCCESS', response.data)
       if(!success) commit('tag/GET_LIST_FAILURE')
     })
@@ -82,7 +87,7 @@ export const actions = {
     commit('category/REQUEST_LIST')
     return Service.get('/category', { params })
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('category/GET_LIST_SUCCESS', response.data)
       if(!success) commit('category/GET_LIST_FAILURE')
     })
@@ -96,7 +101,7 @@ export const actions = {
     commit('article/REQUEST_HOT_LIST')
     return Service.get('/article', { params: { hot: 1 }})
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('article/GET_HOT_LIST_SUCCESS', response.data)
       if(!success) commit('article/GET_HOT_LIST_FAILURE')
     }, err => {
@@ -115,7 +120,7 @@ export const actions = {
     commit('comment/REQUEST_LIST')
     return Service.get('/comment', { params })
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) {
         if (Object.is(params.sort, -1)) response.data.result.data.reverse()
         commit('comment/GET_LIST_SUCCESS', response.data)
@@ -131,7 +136,7 @@ export const actions = {
     commit('comment/POST_ITEM')
     return Service.post('/comment', comment)
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) {
         commit('comment/POST_ITEM_SUCCESS', response.data)
         return Promise.resolve(response.data)
@@ -149,7 +154,7 @@ export const actions = {
   likeArticleOrPageOrComment({ commit }, like) {
     return Service.post('/like', like)
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) {
         let mutation
         switch(like.type) {
@@ -177,7 +182,7 @@ export const actions = {
     commit('announcement/REQUEST_LIST')
     return Service.get('/announcement', { params })
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('announcement/GET_LIST_SUCCESS', response.data)
       if(!success) commit('announcement/GET_LIST_FAILURE')
     }, err => {
@@ -190,7 +195,7 @@ export const actions = {
     commit('sitemap/REQUEST_ARTICLES')
     return Service.get('/article', { params })
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       const commitName =  `sitemap/GET_ARTICLES_SUCCESS`
       if(success) commit(commitName, response.data)
       if(!success) commit('sitemap/GET_ARTICLES_FAILURE')
@@ -205,7 +210,7 @@ export const actions = {
     commit('article/REQUEST_LIST')
     return Service.get('/article', { params })
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       const isFirstPage = params.page && params.page > 1
       const commitName =  `article/${isFirstPage ? 'ADD' : 'GET'}_LIST_SUCCESS`
       if(success) commit(commitName, response.data)
@@ -221,7 +226,7 @@ export const actions = {
     commit('article/REQUEST_DETAIL')
     return Service.get(`/article/${ params.article_id }`)
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('article/GET_DETAIL_SUCCESS', response.data)
       if(!success) commit('article/GET_DETAIL_FAILURE')
       return Promise.resolve(response.data)
@@ -241,7 +246,7 @@ export const actions = {
     commit('project/REQUEST_GUTHUB_REPOSITORIES')
     return Service.get(`/github`)
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) commit('project/REQUEST_GUTHUB_REPOSITORIES_SUCCESS', response.data)
       if(!success) commit('project/REQUEST_GUTHUB_REPOSITORIES_FAILURE')
     }, err => {
@@ -251,43 +256,43 @@ export const actions = {
 
   // 获取歌曲列表
   loadMuiscPlayerList({ commit }) {
-    commit('music/REQUEST_LIST')
+    EventBus.REQUEST_LIST()
     return Service.get('/music/list/638949385')
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
       if(success) {
-        commit('music/GET_LIST_SUCCESS', response.data)
-        commit('music/INIT_PLAYER')
+        EventBus.GET_LIST_SUCCESS(response.data)
+        EventBus.INIT_PLAYER()
       }
-      if(!success) commit('music/GET_LIST_FAILURE')
+      if(!success) EventBus.GET_LIST_FAILURE()
     }, err => {
-      commit('music/GET_LIST_FAILURE', err)
+      EventBus.GET_LIST_FAILURE(err)
     })
   },
 
   // 获取歌曲详情
   loadMuiscSongDetail({ commit }, params = {}) {
-    commit('music/REQUEST_SONG')
+    EventBus.REQUEST_SONG()
     return Service.get(`/music/song/${ params.song_id }`)
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
-      if(success) commit('music/GET_SONG_SUCCESS', response.data)
-      if(!success) commit('music/GET_SONG_FAILURE')
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
+      if(success) EventBus.GET_SONG_SUCCESS(response.data)
+      if(!success) EventBus.GET_SONG_FAILURE()
     }, err => {
-      commit('music/GET_SONG_FAILURE', err)
+      EventBus.GET_SONG_FAILURE(err)
     })
   },
 
   // 获取歌曲歌词
   loadMuiscSongLrc({ commit }, params = {}) {
-    commit('music/REQUEST_LRC')
+    EventBus.REQUEST_LRC()
     return Service.get(`/music/lrc/${ params.song_id }`)
     .then(response => {
-      const success = Object.is(response.statusText, 'OK') && Object.is(response.data.code, 1)
-      if(success) commit('music/GET_LRC_SUCCESS', response.data)
-      if(!success) commit('music/GET_LRC_FAILURE')
+      const success = !!response.status && response.data && Object.is(response.data.code, 1)
+      if(success) EventBus.GET_LRC_SUCCESS(response.data)
+      if(!success) EventBus.GET_LRC_FAILURE()
     }, err => {
-      commit('music/GET_LRC_FAILURE', err)
+      EventBus.GET_LRC_FAILURE(err)
     })
   }
 }

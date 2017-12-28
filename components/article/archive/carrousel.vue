@@ -8,7 +8,7 @@
         <div class="swiper-wrapper">
           <div class="swiper-slide item" v-for="(article, index) in article.data.data.slice(0, 9)" :key="index">
             <div class="content">
-              <img :src="buildThumb(article.thumb)">
+              <img :src="buildThumb(article.thumb)" :alt="article.title">
               <router-link :to="`/article/${article.id}`" class="title">
                 <span>{{ article.title }}</span>
               </router-link>
@@ -27,17 +27,21 @@
     data() {
       return {
         swiperOption: {
-          autoplay: 3500,
+          autoplay: {
+            delay: 3500,
+            disableOnInteraction: false
+          },
+          pagination: {
+            clickable: true,
+            el: '.swiper-pagination'
+          },
           setWrapperSize: true,
           autoHeight: true,
-          pagination: '.swiper-pagination',
-          paginationClickable: true,
-          mousewheelControl: true,
-          autoplayDisableOnInteraction: false,
+          mousewheel: true,
           observeParents: true,
           grabCursor: true,
           preloadImages: false,
-          lazyLoading: true
+          lazy: true
         }
       }
     },
@@ -50,21 +54,20 @@
       mobileLayout() {
         return this.$store.state.option.mobileLayout
       },
-      userAgent() {
-        return this.$store.state.option.userAgent
+      imgExt() {
+        return this.$store.state.option.imgExt
       }
     },
     methods: {
       buildThumb(thumb) {
         if (thumb) {
           if (this.mobileLayout) {
-            let isIos  = (/(iPhone|iPad|iPod|iOS)/i.test(this.userAgent))
-            return `${thumb}?imageView2/1/w/768/h/271/format/${isIos ? 'jpeg' : 'webp'}/interlace/1/q/80|watermark/2/text/U3VybW9uLm1l/font/Y2FuZGFyYQ==/fontsize/560/fill/I0ZGRkZGRg==/dissolve/30/gravity/SouthWest/dx/30/dy/15|imageslim`
+            return `${thumb}?imageView2/1/w/768/h/271/format/${this.imgExt}/interlace/1/q/80|watermark/2/text/U3VybW9uLm1l/font/Y2FuZGFyYQ==/fontsize/560/fill/I0ZGRkZGRg==/dissolve/30/gravity/SouthWest/dx/30/dy/15|imageslim`
           } else {
-            return `${thumb}?imageView2/1/w/1190/h/420/format/webp/interlace/1/q/80|watermark/2/text/U3VybW9uLm1l/font/Y2FuZGFyYQ==/fontsize/680/fill/I0ZGRkZGRg==/dissolve/30/gravity/SouthWest/dx/30/dy/15|imageslim`
+            return `${thumb}?imageView2/1/w/1190/h/420/format/${this.imgExt}/interlace/1/q/80|watermark/2/text/U3VybW9uLm1l/font/Y2FuZGFyYQ==/fontsize/680/fill/I0ZGRkZGRg==/dissolve/30/gravity/SouthWest/dx/30/dy/15|imageslim`
           }
         } else {
-          return `/images/${this.mobileLayout ? 'mobile-' : ''}thumb-carrousel.jpg`
+          return `${this.cdnUrl}/images/${this.mobileLayout ? 'mobile-' : ''}thumb-carrousel.jpg`
         }
       }
     }
@@ -136,6 +139,11 @@
           > .content {
             min-height: 8rem;
             height: auto;
+
+            > .title {
+              max-width: 75%;
+              @include text-overflow;
+            }
           }
         }
       }

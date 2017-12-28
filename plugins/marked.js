@@ -1,6 +1,6 @@
 import marked from 'marked'
-import Hljs from 'highlight.js'
-import buildTagLink from '~utils/article-tag-releted-parse.js'
+import Hljs from '~/plugins/highlight'
+import buildTagLink from '~/utils/article-tag-releted-parse'
 
 marked.setOptions({
   renderer: new marked.Renderer(),
@@ -29,7 +29,7 @@ const linkParse = (href, title, text) => {
              target="_blank" 
              class="${textIsImage ? 'image-link' : 'link'}"
              title="${title || (textIsImage ? href : text)}" 
-             ${isSelf ? '' : 'rel="external nofollow"'}>${text}</a>`.replace(/\s+/g, ' ').replace('\n', '')
+             ${isSelf ? '' : 'rel="external nofollow noopenter"'}>${text}</a>`.replace(/\s+/g, ' ').replace('\n', '')
 }
 
 // 对图片进行弹窗处理
@@ -82,6 +82,11 @@ export default (content, tags, parseHtml = false) => {
 
   // 如果是解析评论，则不解析html内容
   marked.setOptions({ sanitize: !parseHtml })
+
+  // console.log('content', content)
+  if (typeof content != 'string') {
+    return ''
+  }
 
   // 返回解析内容
   return marked(content, { renderer })

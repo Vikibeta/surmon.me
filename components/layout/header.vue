@@ -13,7 +13,7 @@
               <i class="iconfont icon-music-prev"></i>
             </button>
             <button class="toggle-play btn" @click="togglePlay" :disabled="!playerState.ready">
-                <i class="iconfont" :class="[playerState.playing ? 'icon-music-pause' : 'icon-music-play']"></i>
+              <i class="iconfont" :class="[playerState.playing ? 'icon-music-pause' : 'icon-music-play']"></i>
             </button>
             <button class="next-song btn" @click="nextSong" :disabled="!playerState.ready">
               <i class="iconfont icon-music-next"></i>
@@ -33,57 +33,100 @@
               <span>{{ currentSong.album.name || 'unknow' }}</span>
             </nuxt-link>
           </div>
+          <div class="song" v-else>Music is the eye of ear.</div>
         </div>
+      </div>
+      <div class="pre-load">
+        <img v-if="preload" :src="currentSongPicUrl" alt="song-thumb">
+        <img v-if="preload" src="/images/app-hot.png" alt="app-download">
+        <img v-if="preload" src="/images/app-logo.png" alt="app-logo">
+        <img v-if="preload" src="/images/service.jpg" alt="service">
+        <img v-if="preload" src="/images/about-background-be-1.jpg" alt="background">
+        <img v-if="preload" src="/images/about-background-be-2.jpg" alt="background">
+        <img v-if="preload" src="/images/about-background-star-1.png" alt="background">
+        <img v-if="preload" src="/images/about-background-star-2.png" alt="background">
       </div>
     </nav>
   </header>
 </template>
 
 <script>
-export default {
-  name: 'header',
-  computed: {
-    player() {
-      return this.$store.state.music.player
-    },
-    playerState() {
-      return this.$store.state.music.playerState
-    },
-    currentSong() {
-      return this.$store.getters['music/currentSong']
-    },
-    currentSongPicUrl() {
-      if (this.currentSong) {
-        let picUrl = this.currentSong.album.picUrl
-        return picUrl ? picUrl.replace('http://', '/proxy/') : '/images/music-bg.jpg'
-      } else {
-        return '/images/music-bg.jpg'
-      }
-    }
-  },
-  methods: {
-    togglePlay() {
-      if (this.playerState.ready) {
-        this.player.togglePlay()
+  const apiConfig = require('~/api.config')
+  import EventBus from '~/utils/event-bus'
+  import consoleSlogan from '~/utils/console-slogan'
+  export default {
+    name: 'layout-header',
+    data() {
+      return {
+        preload: false
       }
     },
-    toggleMuted() {
-      if (this.playerState.ready) {
-        this.player.toggleMuted()
+    mounted() {
+      if (process.browser) {
+        const self = this
+        const player = EventBus.player
+        const play = () => {
+          if (player.playerState.ready && player.player && player.player.play) {
+            player.player.play()
+            setTimeout(() => {
+              consoleSlogan()
+            }, 666)
+          } else {
+            setTimeout(play, 1666)
+          }
+        }
+        window.addEventListener('load', event => {
+          window.setTimeout(() => {
+            self.preload = true
+            play()
+          }, 1666)
+        })
       }
     },
-    prevSong() {
-      if (this.playerState.ready) {
-        this.player.prevSong()
+    computed: {
+      player() {
+        return EventBus.player.player
+      },
+      playerState() {
+        return EventBus.player.playerState
+      },
+      currentSong() {
+        return EventBus.currentSong
+      },
+      currentSongPicUrl() {
+        if (this.currentSong) {
+          let picUrl = this.currentSong.album.picUrl
+          return picUrl 
+                 ? picUrl.replace('http://', '/proxy/') + '?param=600y600' 
+                 : `${this.cdnUrl}/images/music-bg.jpg`
+        } else {
+          return `${this.cdnUrl}/images/music-bg.jpg`
+        }
       }
     },
-    nextSong() {
-      if (this.playerState.ready) {
-        this.player.nextSong()
+    methods: {
+      togglePlay() {
+        if (this.playerState.ready) {
+          this.player.togglePlay()
+        }
+      },
+      toggleMuted() {
+        if (this.playerState.ready) {
+          this.player.toggleMuted()
+        }
+      },
+      prevSong() {
+        if (this.playerState.ready) {
+          this.player.prevSong()
+        }
+      },
+      nextSong() {
+        if (this.playerState.ready) {
+          this.player.nextSong()
+        }
       }
     }
   }
-}
 </script>
 
 <style lang="scss" scoped>
@@ -96,22 +139,22 @@ export default {
       top: 0;
       left: 0;
       width: 100%;
-      height: 4.5em;
+      height: $header-height;
       background-color: $module-bg;
       z-index: 999;
 
       .navbar-container {
-        height: 4.5em;
+        height: $header-height;
         display: flex;
         justify-content: space-between;
 
         .navbar-header {
-          height: 4.5em;
+          height: $header-height;
           display: flex;
           position: relative;
           align-items: center;
           padding-left: .5em;
-          width: 30em;
+          width: 29em;
           justify-content: space-between;
 
           .navbar-logo {
@@ -120,7 +163,7 @@ export default {
 
           .navbar-slogan {
             color: $primary;
-            font-family: CenturyGothic;
+            font-family: DINRegular, CenturyGothic;
           }
 
           .navbar-link {
@@ -177,6 +220,13 @@ export default {
             color: $dividers;
           }
         }
+      }
+
+      > .pre-load {
+        visibility: hidden;
+        width: 0;
+        height: 0;
+        opacity: 0;
       }
     }
   }

@@ -46,19 +46,21 @@
         <i class="iconfont icon-music-next"></i>
       </button>
     </div>
-    <div class="song-info" v-if="currentSong">
-      <h3>
+    <div class="song-info">
+      <h3 v-if="currentSong">
         <span>{{ currentSong.name }}</span>
         <span> By </span>
         <span v-for="artist in currentSong.artists">{{ artist.name }}</span>
         <span> / </span>
         <span>{{ currentSong.album.name || 'unknow' }}</span>
       </h3>
+      <h3 v-else>Kind words are the music of the world.</h3>
     </div>
   </div>
 </template>
 
 <script>
+  import EventBus from '~/utils/event-bus'
   export default {
     name: 'music',
     head: {
@@ -75,28 +77,32 @@
       }
     },
     mounted() {
-      this.updateScreenHeight()
-      window.addEventListener('resize', this.updateScreenHeight)
+      if (process.browser) {
+        this.updateScreenHeight()
+        window.addEventListener('resize', this.updateScreenHeight)
+      }
     },
     beforeDestroy() {
       window.removeEventListener('resize', this.updateScreenHeight)
     },
     computed: {
       player() {
-        return this.$store.state.music.player
+        return EventBus.player.player
       },
       playerState() {
-        return this.$store.state.music.playerState
+        return EventBus.player.playerState
       },
       currentSong() {
-        return this.$store.getters['music/currentSong']
+        return EventBus.currentSong
       },
       currentSongPicUrl() {
         if (this.currentSong) {
           let picUrl = this.currentSong.album.picUrl
-          return picUrl ? picUrl.replace('http://', '/proxy/') : '/images/music-bg.jpg'
+          return picUrl 
+                 ? picUrl.replace('http://', '/proxy/') + '?param=600y600' 
+                 : `${this.cdnUrl}/images/music-bg.jpg`
         } else {
-          return '/images/music-bg.jpg'
+          return `${this.cdnUrl}/images/music-bg.jpg`
         }
       },
       relativeStrokeWidth() {
@@ -234,7 +240,7 @@
           > .toggle-btn {
             width: 6rem;
             height: 6rem;
-            line-height: 6.4rem;
+            line-height: 6rem;
             text-align: center;
             background-color: $module-bg;
             border-radius: 100%;

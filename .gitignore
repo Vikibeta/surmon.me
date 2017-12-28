@@ -4,6 +4,7 @@ node_modules
 
 # logs
 npm-debug.log
+package-lock.json
 
 # Nuxt build
 .nuxt
@@ -12,3 +13,13 @@ npm-debug.log
 dist
 
 sitemap.xml
+
+barrages.json
+data/barrages.json
+/data/barrages.json
+
+ecosystem.config.js
+
+analytics.js
+static/scripts/analytics.js
+/static/scripts/analytics.js

@@ -4,31 +4,47 @@
 *
 */
 
-export const state = {
+export const state = () => {
+  return {
 
-  // 页面的栏目展示类型（3栏/2栏）
-  fullColumn: false,
-  errorColumn: false,
+    // 页面的栏目展示类型（3栏/2栏）
+    fullColumn: false,
+    errorColumn: false,
 
-  // 是否为移动端
-  mobileLayout: false,
-  // 移动端侧边栏
-  mobileSidebar: false,
-  // ua
-  userAgent: '',
+    // 图片格式
+    imgExt: 'webp',
 
-  // 服务端博主信息
-  adminInfo: {
-    fetching: false,
-    data: {}
-  },
+    // 是否为移动端
+    mobileLayout: false,
 
-  // 服务端设置的全局配置
-  globalOption: {
-    fetching: false,
-    data: {
-      meta: {
-        likes: 0
+    // 移动端侧边栏
+    mobileSidebar: false,
+
+    // 是否开启弹幕
+    openBarrage: false,
+
+    // 弹幕是否已首次渲染
+    barrageMounted: false,
+
+    // 是否开启rtc
+    openWebrtc: false,
+
+    // ua
+    userAgent: '',
+
+    // 服务端博主信息
+    adminInfo: {
+      fetching: false,
+      data: {}
+    },
+
+    // 服务端设置的全局配置
+    globalOption: {
+      fetching: false,
+      data: {
+        meta: {
+          likes: 0
+        }
       }
     }
   }
@@ -43,6 +59,11 @@ export const mutations = {
   // 设置UA
   SET_USER_AGENT(state, action) {
     state.userAgent = action
+  },
+
+  // 设置图片格式
+  SET_IMG_EXT(state, action) {
+    state.imgExt = action
   },
 
   // 设置是否移动端状态
@@ -93,5 +114,26 @@ export const mutations = {
   // 喜欢本站
   LIKE_SITE(state, action) {
     state.globalOption.data.meta.likes ++
+  },
+
+  // 切换弹幕状态
+  UPDATE_BARRAGE_STATE(state, action) {
+    if (action !== undefined) {
+      state.openBarrage = !!action
+    } else {
+      state.openBarrage = !state.openBarrage
+    }
+    if (state.openBarrage && !state.barrageMounte) {
+      state.barrageMounted = true
+    }
+  },
+
+  // 切换RTC状态
+  UPDATE_WEBRTC_STATE(state, action) {
+    if (action !== undefined) {
+      state.openWebrtc = !!action
+    } else {
+      state.openWebrtc = !state.openWebrtc
+    }
   }
 }

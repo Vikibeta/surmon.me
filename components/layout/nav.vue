@@ -29,11 +29,35 @@
         <i class="iconfont icon-user"></i>
         <span>About</span>
       </nuxt-link>
+      <nuxt-link to="/service" class="item">
+        <i class="iconfont icon-zan-top"></i>
+        <span>Service</span>
+      </nuxt-link>
       <nuxt-link to="/guestbook" class="item">
         <i class="iconfont icon-comment"></i>
         <span>Guestbook</span>
       </nuxt-link>
-      <div class="item-hr"></div>
+      <a href="https://s.click.taobao.com/vkjaBYw" 
+         rel="external nofollow noopener"
+         class="item ad taobao"
+         target="_blank">
+        <i class="iconfont icon-taobao"></i>
+        <span>Taobao</span>
+      </a>
+      <a href="https://s.click.taobao.com/gflYBYw" 
+         rel="external nofollow noopener"
+         class="item ad aliyun"
+         target="_blank">
+        <i class="iconfont icon-aliyun"></i>
+        <span>Aliyun</span>
+      </a>
+      <a href="https://errend.io"
+         rel="external nofollow noopener"
+         class="item ad errend"
+         target="_blank">
+        <i class="iconfont icon-debug"></i>
+        <span>Errend.io</span>
+      </a>
       <nuxt-link to="/app" class="item app">
         <i class="iconfont icon-app"></i>
         <span>App</span>
@@ -43,27 +67,23 @@
 </template>
 
 <script>
-export default {
-  name: 'nav'
-}
+  export default {
+    name: 'layout-nav'
+  }
 </script>
 
 <style lang="scss" scoped>
   @import '~assets/sass/variables';
   .aside-nav {
     position: fixed;
-    top: 5.5em;
     display: inline-block;
     width: 11.5em;
+    top: 5.5em;
+    left: calc((100% - 75em) / 2);
 
     .nav-list {
       padding: 0;
       margin: 0;
-
-      > .item-hr {
-            margin: 2em 1em 1em 1em;
-    border-top: 1px dashed #d6d6d6;
-      }
 
       > .item {
         border: none;
@@ -77,20 +97,40 @@ export default {
         font-weight: 700;
         border-radius: 1px;
         color: #777;
-        font-family: CenturyGothic;
+        font-family: DINRegular, CenturyGothic;
         margin-bottom: .5em;
-
-        &.app {
-          // margin-top: 0em;
-          // color: $primary;
-        }
-
-        &:last-child {
-          margin-bottom: 0;
-        }
 
         &:hover {
           color: $primary;
+        }
+        
+        &.ad {
+          height: 5rem;
+          line-height: 5rem;
+          margin: 0;
+          border-bottom: 1px dashed #d6d6d6;
+        }
+
+        &.taobao {
+          color: #ff5000;
+          border-top: 1px dashed #d6d6d6;
+
+          > .iconfont {
+            color: #ff5000;
+          }
+        }
+
+        &.aliyun {
+          color: black;
+
+          > .iconfont {
+            color: black;
+          }
+        }
+
+        &:last-child {
+          margin-top: 1rem;
+          margin-bottom: 0;
         }
 
         &.link-active {

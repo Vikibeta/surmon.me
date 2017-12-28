@@ -29,6 +29,7 @@
     </ul>
     <!-- 日期 -->
     <ul class="days">
+      <loading-box v-if="!days.length" class="loading-box"></loading-box>
       <li v-for="day in days">
         <!--本月-->
         <span v-if="day.getMonth() + 1 != currentMonth" 
@@ -105,10 +106,10 @@
       formatDate(year, month, day) {
         const y = year
         let m = month
-        if (m < 10) m = "0" + m
+        if (m < 10) m = '0' + m
         let d = day
-        if (d < 10) d = "0" + d
-        return y + "-" + m + "-" + d
+        if (d < 10) d = '0' + d
+        return y + '-' + m + '-' + d
       }
     }
   }
@@ -117,6 +118,7 @@
 <style lang="scss" scoped>
   @import '~assets/sass/variables';
   .calendar-box {
+    min-height: 17em;
 
     > .months {
       margin-bottom: .5em;
@@ -180,7 +182,13 @@
     }
 
     > .days {
+      min-height: 10em;
       margin-bottom: 0;
+      position: relative;
+
+      > .loading-box {
+        transform: translateY(100%);
+      }
 
       > li {
         line-height: 2.5em;

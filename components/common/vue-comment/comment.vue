@@ -15,6 +15,9 @@
           <strong>{{ likes || 0 }}</strong>
           <span>人喜欢</span>
         </a>
+        <a href="" class="shang" @click.stop.prevent="shang">
+          <i class="iconfont icon-shang"></i>
+        </a>
       </div>
       <div class="sort">
         <a href="" 
@@ -38,18 +41,18 @@
               v-for="(comment, index) in comment.data.data">
             <div class="cm-avatar" v-if="!mobileLayout">
               <a target="_blank"
-                 rel="external nofollow"
+                 rel="external nofollow noopener"
                  :href="comment.author.site" 
                  @click.stop="clickUser($event, comment.author)">
                 <img :alt="comment.author.name || '匿名用户'"
-                     :src="gravatar(comment.author.email) || '/images/anonymous.jpg'">
+                     :src="gravatar(comment.author.email) || `${cdnUrl}/images/anonymous.jpg`">
               </a>
             </div>
             <div class="cm-body">
               <div class="cm-header">
                 <a class="user-name" 
                    target="_blank" 
-                   rel="external nofollow"
+                   rel="external nofollow noopener"
                    :href="comment.author.site" 
                    @click.stop="clickUser($event, comment.author)">{{ comment.author.name | firstUpperCase }}</a>
                 <span class="os" v-html="OSParse(comment.agent)" v-if="comment.agent"></span>
@@ -131,6 +134,7 @@
                    type="text" 
                    name="name"
                    placeholder="name *" 
+                   autocomplete="on"
                    v-model="user.name">
           </div>
           <div class="email">
@@ -138,11 +142,12 @@
                    type="email" 
                    name="email"
                    placeholder="email *" 
+                   autocomplete="on"
                    v-model="user.email" 
                    @blur="upadteUserGravatar">
           </div>
           <div class="site">
-            <input type="url" name="url" placeholder="site" v-model="user.site">
+            <input type="url" name="url" placeholder="site" autocomplete="on" v-model="user.site">
           </div>
           <div class="save" v-if="userCacheEditing">
             <button type="submit" @click="updateUserCache($event)">
@@ -169,7 +174,7 @@
         <div class="user">
           <div class="gravatar" v-if="!mobileLayout">
             <img :alt="user.name || '匿名用户'"
-                 :src="user.gravatar || '/images/anonymous.jpg'">
+                 :src="user.gravatar || `${cdnUrl}/images/anonymous.jpg`">
           </div>
         </div>
         <div class="editor">
@@ -203,36 +208,7 @@
               <i class="iconfont icon-emoji"></i>
               <div class="emoji-box">
                 <ul class="emoji-list">
-                  <li class="item" @click="insertEmoji('😃')">😃</li>
-                  <li class="item" @click="insertEmoji('😂')">😂</li>
-                  <li class="item" @click="insertEmoji('😅')">😅</li>
-                  <li class="item" @click="insertEmoji('😉')">😉</li>
-                  <li class="item" @click="insertEmoji('😌')">😌</li>
-                  <li class="item" @click="insertEmoji('😔')">😔</li>
-                  <li class="item" @click="insertEmoji('😓')">😓</li>
-                  <li class="item" @click="insertEmoji('😢')">😢</li>
-                  <li class="item" @click="insertEmoji('😍')">😍</li>
-                  <li class="item" @click="insertEmoji('😘')">😘</li>
-                  <li class="item" @click="insertEmoji('😜')">😜</li>
-                  <li class="item" @click="insertEmoji('😡')">😡</li>
-                  <li class="item" @click="insertEmoji('😭')">😭</li>
-                  <li class="item" @click="insertEmoji('😱')">😱</li>
-                  <li class="item" @click="insertEmoji('😳')">😳</li>
-                  <li class="item" @click="insertEmoji('😵')">😵</li>
-                  <li class="item" @click="insertEmoji('🌚')">🌚</li>
-                  <li class="item" @click="insertEmoji('🙏')">🙏</li>
-                  <li class="item" @click="insertEmoji('👆')">👆</li>
-                  <li class="item" @click="insertEmoji('👇')">👇</li>
-                  <li class="item" @click="insertEmoji('👌')">👌</li>
-                  <li class="item" @click="insertEmoji('👍')">👍</li>
-                  <li class="item" @click="insertEmoji('👎')">👎</li>
-                  <li class="item" @click="insertEmoji('💪')">💪</li>
-                  <li class="item" @click="insertEmoji('👏')">👏</li>
-                  <li class="item" @click="insertEmoji('🌻')">🌻</li>
-                  <li class="item" @click="insertEmoji('🌹')">🌹</li>
-                  <li class="item" @click="insertEmoji('💊')">💊</li>
-                  <li class="item" @click="insertEmoji('🇨🇳')">🇨🇳</li>
-                  <li class="item" @click="insertEmoji('🇺🇸')">🇺🇸</li>
+                  <li class="item" @click="insertEmoji(e)" v-for="e in emojis">{{ e }}</li>
                 </ul>
               </div>
             </a>
@@ -262,10 +238,11 @@
 </template>
 
 <script>
-  import marked from '~plugins/marked'
-  import gravatar from '~plugins/gravatar'
-  import { UAParse, OSParse } from '~utils/comment-ua-parse'
-  import { scrollTo } from '~utils/scroll-to-anywhere'
+  import marked from '~/plugins/marked'
+  import EventBus from '~/utils/event-bus'
+  import gravatar from '~/plugins/gravatar'
+  import { UAParse, OSParse } from '~/utils/comment-ua-parse'
+  import { scrollTo } from '~/utils/scroll-to-anywhere'
   export default {
     name: 'vue-comment',
     data() {
@@ -296,7 +273,8 @@
         regexs: {
           email: /\w[-\w.+]*@([A-Za-z0-9][-A-Za-z0-9]+\.)+[A-Za-z]{2,14}/,
           url: /^((https|http):\/\/)+[A-Za-z0-9]+\.[A-Za-z0-9]+[\/=\?%\-&_~`@[\]\':+!]*([^<>\"\"])*$/
-        }
+        },
+        emojis: ['😃', '😂', '😅', '😉', '😌', '😔', '😓', '😢', '😍', '😘', '😜', '😡', '😭', '😱', '😳', '😵', '🌚', '🙏', '👆', '👇', '👌', '👍', '👎', '💪', '👏', '🌻', '🌹', '💊', '🇨🇳', '🇺🇸']
       }
     },
     props: {
@@ -344,6 +322,9 @@
     methods: {
       UAParse,
       OSParse,
+      shang() {
+        window.utils.openImgPopup(`${this.cdnUrl}/images/shang.jpg`, 'shang')
+      },
       // markdown解析服务
       marked(content) {
         return marked(content, null, false)
@@ -375,8 +356,8 @@
       // 更新用户数据
       updateUserCache(event) {
         event.preventDefault()
-        if (!this.user.name) return alert('请输入名字')
-        if (!this.user.email) return alert('请输入邮箱')
+        if (!this.user.name) return alert('名字？')
+        if (!this.user.email) return alert('邮箱？')
         if (!this.regexs.email.test(this.user.email)) return alert('邮箱不合法')
         if (this.user.site && !this.regexs.url.test(this.user.site)) return alert('链接不合法')
         localStorage.setItem('user', JSON.stringify(this.user))
@@ -538,11 +519,11 @@
       submitComment(event) {
         // 为了使用原生表单拦截，不使用事件修饰符
         event.preventDefault()
-        if (!this.user.name) return alert('请输入名字')
-        if (!this.user.email) return alert('请输入邮箱')
+        if (!this.user.name) return alert('名字？')
+        if (!this.user.email) return alert('邮箱？')
         if (!this.regexs.email.test(this.user.email)) return alert('邮箱不合法')
         if (this.user.site && !this.regexs.url.test(this.user.site)) return alert('链接不合法')
-        if(!this.comemntContentText || !this.comemntContentText.replace(/\s/g, '')) return alert('请输入内容')
+        if(!this.comemntContentText || !this.comemntContentText.replace(/\s/g, '')) return alert('内容？')
         const lineOverflow = this.comemntContentText.split('\n').length > 36
         const lengthOverflow = this.comemntContentText.length > 2000
         if(lineOverflow || lengthOverflow) return alert('内容需要在2000字/36行以内')
@@ -563,6 +544,40 @@
           agent: navigator.userAgent
         }).then(data => {
           // 发布成功后清空评论框内容并更新本地信息
+          const content = data.result.content
+          const emoji233333 = EventBus.emoji233333
+          if (emoji233333 && emoji233333.launch) {
+            // 为表情做一次缓冲
+            const preImage = (url, callback) => {  
+              const img = new Image()
+              img.src = url
+              if (img.complete) return callback(img)
+              img.onload = () => callback(img)
+            }
+            if (content.includes('2333') || content.includes('哈哈')) {
+              const emoji = emoji233333.defaultEmoji
+              emoji233333.update({
+                emoji,
+                speed: 12,
+                staggered: true,
+                increaseSpeed: 0.4,
+              })
+              preImage(emoji, emoji233333.launch.bind(emoji233333))
+            } else if (content.includes('666')) {
+              const emoji = '/images/emojis/666.png'
+              emoji233333.update({
+                emoji,
+                speed: 12,
+                staggered: true,
+                increaseSpeed: 0.4
+              })
+              preImage(emoji, emoji233333.launch.bind(emoji233333))
+            } else if (content.includes('呵呵')) {
+              const emoji = '/images/emojis/hehe.png'
+              emoji233333.update({ emoji, staggered: false, speed: 8, increaseSpeed: 0.04 })
+              preImage(emoji, emoji233333.launch.bind(emoji233333))
+            }
+          }
           this.previewMode = false
           this.userCacheMode = true
           this.cancelCommentReply()
@@ -713,6 +728,7 @@
     > .tools {
       display: flex;
       padding: 1em 0;
+      padding-top: 0;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid $module-hover-bg;
@@ -723,9 +739,28 @@
         font-size: 1em;
 
         > .like,
+        > .shang,
         > .count {
           padding: .2em .5em;
           background-color: $module-hover-bg;
+        }
+
+        @keyframes shangBtnBg {
+          0%   {
+            background: rgba($primary, .8);
+          }
+          50% {
+            background: rgba(#50a849, .8);
+          }
+          100% {
+            background: rgba($primary, .8);
+          }
+        }
+
+        > .shang {
+          margin-left: .5em;
+          color: white;
+          animation: shangBtnBg 1s infinite;
         }
 
         > .like {
@@ -764,6 +799,8 @@
     > .empty-box {
       font-weight: bold;
       text-align: center;
+      height: 5rem;
+      line-height: 5rem;
     }
 
     > .list-box {
@@ -829,7 +866,7 @@
               > .user-name {
                 font-weight: bold;
                 margin-right: .8em;
-                font-family: Microsoft YaHei,Arial,Helvetica,sans-serif;
+                // font-family: Microsoft YaHei,Arial,Helvetica,sans-serif;
 
                 &:hover {
                   text-decoration: underline;
@@ -990,7 +1027,7 @@
           position: relative;
 
           > .name {
-            font-family: Microsoft YaHei,Arial,Helvetica,sans-serif;
+            // font-family: DINRegular, -apple-system, Microsoft YaHei, Arial, Helvetica, sans-serif;
           }
 
           > .setting {
@@ -1029,7 +1066,7 @@
           flex-grow: 1;
           line-height: 2em;
           text-align: center;
-          font-family: Microsoft YaHei,Arial,Helvetica,sans-serif;
+          // font-family: Microsoft YaHei,Arial,Helvetica,sans-serif;
 
           > button {
             display: block;
@@ -1045,7 +1082,7 @@
         > .name,
         > .email,
         > .site {
-          font-family: Microsoft YaHei,Arial,Helvetica,sans-serif;
+          // font-family: Microsoft YaHei,Arial,Helvetica,sans-serif;
           flex-grow: 1;
 
           > input {

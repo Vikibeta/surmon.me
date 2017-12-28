@@ -1,7 +1,7 @@
 <template>
   <div class="announcement">
     <div class="title">
-      <i class="iconfont icon-horn"></i>
+      <i class="iconfont icon-clock-stroke"></i>
     </div>
     <transition name="module" mode="out-in">
       <empty-box class="announcement-empty-box" v-if="!announcement.data.data.length">
@@ -27,20 +27,26 @@
 </template>
 
 <script>
-  import marked from '~plugins/marked'
+  import marked from '~/plugins/marked'
   export default {
     name: 'index-announcement',
     data() {
       return {
         swiperOption: {
-          autoplay: 3500,
+           autoplay: {
+            delay: 3500,
+            disableOnInteraction: false
+          },
+          navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev'
+          },
+          pagination: {
+            clickable: true
+          },
+          slidesPerView: 1,
           setWrapperSize: true,
           direction: 'vertical',
-          nextButton: '.swiper-button-next',
-          prevButton: '.swiper-button-prev',
-          slidesPerView: 1,
-          paginationClickable: true,
-          autoplayDisableOnInteraction: false,
           loop: true
         }
       }
@@ -78,6 +84,10 @@
       float: left;
       width: 10%;
       text-align: center;
+
+      > .iconfont {
+        font-size: 1.3rem;
+      }
     }
 
     > .swiper {

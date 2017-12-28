@@ -1,11 +1,13 @@
+[![GitHub stars](https://img.shields.io/github/stars/surmon-china/surmon.me.svg?style=flat-square)](https://github.com/surmon-china/surmon.me/stargazers)
 [![GitHub issues](https://img.shields.io/github/issues/surmon-china/surmon.me.svg?style=flat-square)](https://github.com/surmon-china/surmon.me/issues)
 [![GitHub forks](https://img.shields.io/github/forks/surmon-china/surmon.me.svg?style=flat-square)](https://github.com/surmon-china/surmon.me/network)
-[![GitHub stars](https://img.shields.io/github/stars/surmon-china/surmon.me.svg?style=flat-square)](https://github.com/surmon-china/surmon.me/stargazers)
+[![GitHub last commit](https://img.shields.io/github/last-commit/google/skia.svg?style=flat-square)](https://github.com/surmon-china/surmon.me)
+[![](https://badge.juejin.im/entry/58ff969861ff4b00667ca82e/likes.svg?style=flat-square)](https://juejin.im/post/58ff960ba22b9d0065b722cd)
 [![Twitter](https://img.shields.io/twitter/url/https/github.com/surmon-china/surmon.me.svg?style=flat-square)](https://twitter.com/intent/tweet?url=https://github.com/surmon-china/surmon.me)
 
 ## Surmon.me
 
-Vue-Blog By Nuxt.js + Vuex + Vue-router + Axios 
+My blog by [Nuxt.js](https://github.com/nuxt)
 
 [Online Blog - https://surmon.me](https://surmon.me/)
 
@@ -19,15 +21,14 @@ If you want to run the applaction, you need install the [nodepress](https://gith
 
 ![](https://raw.githubusercontent.com/surmon-china/surmon.me/master/screenshot/mobile-full.jpg)
 
-## Webpack Bundle 
-
-![](https://raw.githubusercontent.com/surmon-china/surmon.me/master/screenshot/webpack-bundle-analyze.png)
-
 ## Build Setup
 
 ```bash
-# install dependencies
-$ npm install # Or yarn install
+# 使用 nodemon 在开发环境下工作
+sudo npm i nodemon -g
+
+# install dependencies 依赖 python2.7
+$ npm install [--python=python2.7] # Or yarn install
 
 # serve with hot reload at localhost:3000
 $ npm run dev
@@ -106,6 +107,16 @@ $ npm run lint
 - ~~http://music.163.com/#/playlist?id=638949385~~
 - ~~修复了播放器~~
 - ~~升级了Nuxt，且使用了offline-plugin实现离线应用~~
+- ~~增加弹幕功能~~
+- ~~优化宽屏阅读功能~~
+- ~~优化播放器~~
+- ~~优化移动端样式~~
+- ~~评论233333试试~~
+- ~~优化包依赖的问题~~
+- ~~增加基于WebRTC的在线视频功能~~
+- ~~新增C++版本的 TURN Server~~
+- ~~增加人脸识别功能~~
+- ~~增加了一个叫美颜的功能~~
 - graphql-js + Restful查询数据库
 
 ## 目录结构

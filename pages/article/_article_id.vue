@@ -67,7 +67,7 @@
           <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
           <a href="https://creativecommons.org/licenses/by-nc/3.0/cn/deed.zh"
              target="_blank"
-             rel="external nofollow">Creative Commons BY-NC 3.0 CN</a>
+             rel="external nofollow noopenter">Creative Commons BY-NC 3.0 CN</a>
         </div>
       </div>
     </transition>
@@ -106,9 +106,9 @@
 </template>
 
 <script>
-  import ShareBox from '~components/layout/share'
-  import Clipboard from '~plugins/clipboard'
-  import marked from '~plugins/marked'
+  import Clipboard from 'clipboard'
+  import marked from '~/plugins/marked'
+  import ShareBox from '~/components/layout/share'
 
   export default {
     name: 'article-detail',
@@ -186,6 +186,9 @@
       },
       mobileLayout() {
         return this.$store.state.option.mobileLayout
+      },
+      imgExt() {
+        return this.$store.state.option.imgExt
       }
     },
     methods: {
@@ -203,8 +206,8 @@
         }
       },
       buildThumb(thumb) {
-        if (!thumb) return '/images/thumb-releted.jpg'
-        return `${thumb}?imageView2/1/w/300/h/230/format/webp/interlace/1/q/80|imageslim`
+        if (!thumb) return `${this.cdnUrl}/images/thumb-releted.jpg`
+        return `${thumb}?imageView2/1/w/300/h/230/format/${this.imgExt}/interlace/1/q/80|imageslim`
       },
       buildDateTitle(date) {
         if (!date) return date
@@ -263,6 +266,20 @@
           }
         }
       }
+
+      > .detail {
+
+        > .content {
+
+          pre {
+            padding-left: 0;
+
+            > .code-lines {
+              display: none;
+            }
+          }
+        }
+      }
     }
 
     > .detail,
@@ -282,6 +299,12 @@
       }
 
       > .content {
+
+        iframe {
+          width: 100%;
+          margin-bottom: 1em;
+          background-color: black;
+        }
 
         a {
           font-weight: bold;
@@ -359,7 +382,7 @@
 
           > li {
             line-height: 1.8em;
-            padding: .5em;
+            padding: .5em .8em;
 
             &:hover {
               background-color: rgba(230, 230, 230, 0.7);
@@ -531,7 +554,7 @@
     }
 
     > .metas {
-      padding: 1em 2em;
+      padding: 1em 1.5em;
 
       > .item {
 
@@ -554,7 +577,7 @@
     > .related {
       padding: 1em 0;
       border-width: 0 1em;
-      border-color: $module-bg;
+      border-color: transparent;
       overflow: hidden;
       height: 10em;
 
