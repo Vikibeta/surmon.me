@@ -3,23 +3,23 @@
     <nav class="nav-list">
       <nuxt-link :to="'/'" class="item" exact>
         <i class="iconfont icon-home"></i>
-        <span>Home</span>
+        <span v-text="$i18n.nav.home"></span>
       </nuxt-link>
       <nuxt-link to="/category/code" class="item">
         <i class="iconfont icon-code"></i>
-        <span>Code</span>
+        <span v-text="$i18n.nav.code"></span>
       </nuxt-link>
       <nuxt-link to="/project" class="item">
         <i class="iconfont icon-tool"></i>
-        <span>Project</span>
+        <span v-text="$i18n.nav.project"></span>
       </nuxt-link>
       <nuxt-link to="/category/think" class="item">
         <i class="iconfont icon-think"></i>
-        <span>Think</span>
+        <span v-text="$i18n.nav.think"></span>
       </nuxt-link>
       <nuxt-link to="/music" class="item">
         <i class="iconfont icon-netease-music"></i>
-        <span>Music</span>
+        <span v-text="$i18n.nav.music"></span>
       </nuxt-link>
       <nuxt-link to="/category/movie" class="item" v-if="false">
         <i class="iconfont icon-movie"></i>
@@ -27,53 +27,62 @@
       </nuxt-link>
       <nuxt-link to="/about" class="item">
         <i class="iconfont icon-user"></i>
-        <span>About</span>
+        <span v-text="$i18n.nav.about"></span>
       </nuxt-link>
       <nuxt-link to="/service" class="item">
-        <i class="iconfont icon-zan-top"></i>
-        <span>Service</span>
+        <i class="iconfont icon-zan"></i>
+        <span v-text="$i18n.nav.service"></span>
+        <span class="superscript">
+          <i class="iconfont icon-hot"></i>
+        </span>
       </nuxt-link>
-      <nuxt-link to="/guestbook" class="item">
+      <nuxt-link to="/guestbook" class="item guestbook">
         <i class="iconfont icon-comment"></i>
-        <span>Guestbook</span>
+        <span v-text="$i18n.nav.guestbook"></span>
       </nuxt-link>
-      <a href="https://s.click.taobao.com/vkjaBYw" 
-         rel="external nofollow noopener"
-         class="item ad taobao"
-         target="_blank">
+      <a
+        :href="ads.taobao"
+        rel="external nofollow noopener"
+        class="item ad taobao"
+        target="_blank">
         <i class="iconfont icon-taobao"></i>
-        <span>Taobao</span>
+        <span v-text="$i18n.nav.taobao"></span>
       </a>
-      <a href="https://s.click.taobao.com/gflYBYw" 
-         rel="external nofollow noopener"
-         class="item ad aliyun"
-         target="_blank">
+      <a
+        :href="ads.aliyun"
+        rel="external nofollow noopener"
+        class="item ad aliyun"
+        target="_blank">
         <i class="iconfont icon-aliyun"></i>
-        <span>Aliyun</span>
+        <span v-text="$i18n.nav.aliyun"></span>
       </a>
-      <a href="https://errend.io"
-         rel="external nofollow noopener"
-         class="item ad errend"
-         target="_blank">
+      <a
+        href="https://errend.io"
+        rel="external nofollow noopener"
+        class="item ad errend"
+        target="_blank">
         <i class="iconfont icon-debug"></i>
         <span>Errend.io</span>
       </a>
       <nuxt-link to="/app" class="item app">
         <i class="iconfont icon-app"></i>
-        <span>App</span>
+        <span v-text="$i18n.nav.app"></span>
       </nuxt-link>
     </nav>
   </div>
 </template>
 
 <script>
+  import adConfig from '~/ad.config'
   export default {
-    name: 'layout-nav'
+    name: 'layout-nav',
+    computed: {
+      ads: () => adConfig.pc.nav
+    }
   }
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/variables';
   .aside-nav {
     position: fixed;
     display: inline-block;
@@ -96,24 +105,45 @@
         text-transform: uppercase;
         font-weight: 700;
         border-radius: 1px;
-        color: #777;
-        font-family: DINRegular, CenturyGothic;
+        color: $secondary;
+        font-family: DINRegular;
         margin-bottom: .5em;
+        position: relative;
 
         &:hover {
           color: $primary;
+        }
+
+        > .superscript {
+          margin-left: 1rem;
+
+          @keyframes superscript-icon-color {
+            0%   { color: chartreuse }
+            15%  { color: green }
+            30%  { color: red }
+            45%  { color: darkviolet }
+            60% { color: pink }
+            86% { color: blue }
+            100% { color: black }
+          }
+
+          > .iconfont {
+            color: $red;
+            transition: color 0s;
+            animation: superscript-icon-color 1s infinite;
+          }
         }
         
         &.ad {
           height: 5rem;
           line-height: 5rem;
           margin: 0;
-          border-bottom: 1px dashed #d6d6d6;
+          border-bottom: 1px dashed $module-hover-bg;
         }
 
         &.taobao {
           color: #ff5000;
-          border-top: 1px dashed #d6d6d6;
+          border-top: 1px dashed $module-hover-bg;
 
           > .iconfont {
             color: #ff5000;
@@ -128,16 +158,27 @@
           }
         }
 
+         &.app {
+          color: $primary;
+
+          > .iconfont {
+            color: $primary;
+          }
+        }
+
         &:last-child {
           margin-top: 1rem;
           margin-bottom: 0;
         }
 
         &.link-active {
-          background-color: #eee;
           font-weight: bold;
           color: $primary;
           background-color: $module-bg;
+
+          &.guestbook {
+            background: linear-gradient(to bottom, $module-bg, transparent);
+          }
         }
 
         .iconfont {

@@ -5,13 +5,13 @@
 </template>
 
 <script>
-  import Carrousel from '~/components/article/archive/carrousel'
-  import ArticleList from '~/components/article/archive/list'
+  import Carrousel from '~/components/archive/carrousel'
+  import ArticleList from '~/components/archive/list'
 
   export default {
     name: 'data-article-list',
     validate ({ params }) {
-      return !Object.is(new Date(params.date).toString(), 'Invalid Date')
+      return new Date(params.date).toString() !== 'Invalid Date'
     },
     fetch({ store, params }) {
       return store.dispatch('loadArticles', params)

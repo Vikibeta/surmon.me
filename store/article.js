@@ -1,8 +1,8 @@
-/*
-*
-* 文章数据状态
-*
-*/
+/**
+ * @file 文章数据状态 / ES module
+ * @module store/article
+ * @author Surmon <https://github.com/surmon-china>
+ */
 
 export const state = () => {
   return {
@@ -13,10 +13,10 @@ export const state = () => {
     list: {
       fetching: false,
       data: {
+        data: [],
         pagination: {
           current_page: 0
-        },
-        data: []
+        }
       }
     },
     detail: {
@@ -31,11 +31,9 @@ export const mutations = {
   // List
   CLEAR_LIST(state) {
     state.list.data = {
-      result: {
-        pagination: {
-          current_page: 0
-        },
-        data: []
+      data: [],
+      pagination: {
+        current_page: 0
       }
     }
   },
@@ -51,7 +49,7 @@ export const mutations = {
   },
   ADD_LIST_SUCCESS(state, action) {
     state.list.fetching = false
-    state.list.data.data.push.apply(state.list.data.data, action.result.data)
+    state.list.data.data.push(...action.result.data)
     state.list.data.pagination = action.result.pagination
   },
 
@@ -62,7 +60,7 @@ export const mutations = {
   GET_HOT_LIST_FAILURE(state) {
     state.hot.fetching = false
   },
-  GET_HOT_LIST_SUCCESS(state, action){
+  GET_HOT_LIST_SUCCESS(state, action) {
     state.hot.fetching = false
     state.hot.data = action.result
   },
@@ -85,9 +83,9 @@ export const mutations = {
 
   // 喜欢某篇文章
   LIKE_ARTICLE(state, action) {
-    let article = state.detail.data
-    if (Object.is(article.id, action.id)) {
-      state.detail.data.meta.likes ++
+    const article = state.detail.data
+    if (article.id === action.id) {
+      state.detail.data.meta.likes++
     }
   }
 }

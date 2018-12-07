@@ -5,11 +5,11 @@
 </template>
 
 <script>
-  import ArticleList from '~/components/article/archive/list'
+  import ArticleList from '~/components/archive/list'
 
   export default {
     name: 'category-article-list',
-    validate ({ params }) {
+    validate({ params }) {
       return !!params.keyword
     },
     fetch({ store, params }) {
@@ -17,7 +17,8 @@
     },
     head () {
       return {
-        title: `${this.defaultParams.keyword} | Search` }
+        title: `${this.defaultParams.keyword} | Search`
+      }
     },
     components: {
       ArticleList

@@ -3,9 +3,10 @@
     <nav class="navbar">
       <div class="navbar-container container">
         <div class="navbar-header">
+          <span class="navbar-blank"></span>
           <img src="/images/logo.svg" class="navbar-logo">
-          <span class="navbar-slogan">Talk is cheap. Show me the code</span>
-          <router-link to="/" class="navbar-link"></router-link>
+          <span class="navbar-slogan" v-text="$i18n.text.slogan"></span>
+          <nuxt-link to="/" class="navbar-link" :title="$i18n.text.slogan"></nuxt-link>
         </div>
         <div class="navbar-player">
           <div class="panel">
@@ -23,21 +24,22 @@
             </button>
           </div>
           <div class="song" v-if="currentSong">
-            <nuxt-link to="/music" 
-                       class="link" 
+            <nuxt-link to="/music"
+                       class="link"
                        :title="`${currentSong.name} / ${currentSong.album.name || 'unknow'}`">
               <span>{{ currentSong.name }}</span>
               <span> By </span>
-              <span v-for="artist in currentSong.artists">{{ artist.name }}</span>
+              <span :key="index" v-for="(artist, index) in currentSong.artists">{{ artist.name }}</span>
               <span> / </span>
               <span>{{ currentSong.album.name || 'unknow' }}</span>
             </nuxt-link>
           </div>
-          <div class="song" v-else>Music is the eye of ear.</div>
+          <div class="song" v-else>{{ $i18n.text.music.empty }}</div>
         </div>
       </div>
       <div class="pre-load">
         <img v-if="preload" :src="currentSongPicUrl" alt="song-thumb">
+        <img v-if="preload" src="/images/shang.jpg" alt="shang">
         <img v-if="preload" src="/images/app-hot.png" alt="app-download">
         <img v-if="preload" src="/images/app-logo.png" alt="app-logo">
         <img v-if="preload" src="/images/service.jpg" alt="service">
@@ -51,9 +53,9 @@
 </template>
 
 <script>
-  const apiConfig = require('~/api.config')
   import EventBus from '~/utils/event-bus'
-  import consoleSlogan from '~/utils/console-slogan'
+  import { isBrowser } from '~/environment'
+
   export default {
     name: 'layout-header',
     data() {
@@ -62,24 +64,9 @@
       }
     },
     mounted() {
-      if (process.browser) {
-        const self = this
-        const player = EventBus.player
-        const play = () => {
-          if (player.playerState.ready && player.player && player.player.play) {
-            player.player.play()
-            setTimeout(() => {
-              consoleSlogan()
-            }, 666)
-          } else {
-            setTimeout(play, 1666)
-          }
-        }
-        window.addEventListener('load', event => {
-          window.setTimeout(() => {
-            self.preload = true
-            play()
-          }, 1666)
+      if (isBrowser) {
+        window.addLoadedTask(() => {
+          this.preload = true;
         })
       }
     },
@@ -94,14 +81,7 @@
         return EventBus.currentSong
       },
       currentSongPicUrl() {
-        if (this.currentSong) {
-          let picUrl = this.currentSong.album.picUrl
-          return picUrl 
-                 ? picUrl.replace('http://', '/proxy/') + '?param=600y600' 
-                 : `${this.cdnUrl}/images/music-bg.jpg`
-        } else {
-          return `${this.cdnUrl}/images/music-bg.jpg`
-        }
+        return EventBus.currentSongPicUrl
       }
     },
     methods: {
@@ -155,15 +135,67 @@
           align-items: center;
           padding-left: .5em;
           width: 29em;
-          justify-content: space-between;
+          position: relative;
+          overflow: hidden;
+
+          @keyframes logo-blink {
+            0% {
+              opacity: 0;
+              transform: translateX(-10%);
+            }
+            5% { opacity: 1 }
+            35% { opacity: 1 }
+            39% { opacity: 0 }
+            50% { opacity: .8 }
+            60% { opacity: .8 }
+            65% {
+              opacity: .8;
+              transform: translateX(100%);
+            }
+            70% {
+              opacity: 0;
+              transform: translateX(100%);
+            }
+            100% {
+              opacity: 0;
+              transform: translateX(100%);
+            }
+          }
+
+          > .navbar-blank {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 60%;
+            height: 100%;
+            opacity: 0;
+            animation: logo-blink 8s ease-in 1s infinite;
+
+            &:before {
+              content: '';
+              width: 11rem;
+              height: 3rem;
+              position: absolute;
+              top: 15%;
+              left: 0;
+              transform: rotate(-45deg);
+              background: radial-gradient(white, rgba(255, 255, 255, .2), rgba(255, 255, 255, 0));
+            }
+          }
 
           .navbar-logo {
-            width: 10em;
+            width: 11rem;
+            margin-right: 4rem;
+            filter: $theme-logo-rotate;
+
+            .logo-st {
+              fill: $primary;
+            }
           }
 
           .navbar-slogan {
             color: $primary;
-            font-family: DINRegular, CenturyGothic;
+            font-family: DINRegular;
           }
 
           .navbar-link {

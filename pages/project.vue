@@ -10,7 +10,7 @@
            rel="external nofollow noopenter"
            :href="project.html_url"
            :title="project.description">
-          <i class="iconfont" :class="[buildIcon(project)]"></i>
+          <i class="iconfont" :class="buildIcon(project).icon" :style="{ color: buildIcon(project).color }"></i>
           <h3 class="title">{{ project.name }}</h3>
           <p class="description" style="-webkit-box-orient: vertical;">{{ project.description }}</p>
           <hr>
@@ -37,13 +37,18 @@
 <script>
   export default {
     name: 'project',
-    head: {
-      title: 'Project'
+    head() {
+      return {
+        title: `${this.langIsEn ? '' : this.$i18n.nav.project + ' | '}Project`
+      }
     },
-    fetch ({ store }) {
+    fetch({ store }) {
       return store.dispatch('loadGithubRepositories')
     },
     computed: {
+      langIsEn() {
+        return this.$store.getters['option/langIsEn']
+      },
       projects() {
         return this.$store.state.project.repositories.data
       },
@@ -65,53 +70,96 @@
         }
       },
       buildIcon(project) {
-        switch(true) {
-          case project.name.toLowerCase().includes('vue'):
-          case project.description.toLowerCase().includes('vue'):
-            return 'icon-vue'
-            break;
-          case project.name.toLowerCase().includes('node'):
-            return 'icon-nodejs'
-            break;
-          case project.name.toLowerCase().includes('angular'):
-          case project.name.toLowerCase().includes('ng2'):
-            return 'icon-angularjs'
-            break;
-          case project.name.toLowerCase().includes('chrome'):
-            return 'icon-chrome'
-            break;
-          case project.name.toLowerCase().includes('jquery'):
-            return 'icon-jquery'
-            break;
-          case project.name.toLowerCase().includes('wordpress'):
-            return 'icon-wordpress'
-            break;
-          case project.name.toLowerCase().includes('linux'):
-          case project.description.toLowerCase().includes('linux'):
-            return 'icon-linux'
-            break;
-          case project.name.toLowerCase().includes('react'):
-          case project.description.toLowerCase().includes('react'):
-            return 'icon-react'
-            break;
-          case project.description.toLowerCase().includes('netease'):
-            return 'icon-netease-music'
-            break;
-          case project.description.toLowerCase().includes('music'):
-            return 'icon-music'
-            break;
-          default:
-            return 'icon-code'
-            break; 
-        }
+
+        const iconRules = [{
+            desc: 'netease',
+            icon: 'netease-music',
+            color: '#ab3419'
+          }, {
+            name: 'react',
+            desc: 'react',
+            color: '#5dd4fa'
+          }, {
+            name: 'linux',
+            color: '#000000'
+          }, {
+            name: 'deploy',
+            icon: 'linux',
+            color: '#000000'
+          }, {
+            name: 'sre',
+            icon: 'linux',
+            color: '#000000'
+          }, {
+            name: 'surmon',
+            icon: 'think',
+            color: '#0088f5'
+          }, {
+            name: 'emoji',
+            color: '#f4c449'
+          }, {
+            name: 'vue',
+            desc: 'vue',
+            icon: 'vuejs-gray',
+            color: '#62b287'
+          }, {
+            name: 'chrome',
+            color: '#4aa066'
+          }, {
+            name: 'jquery',
+            color: '#8bcdf1'
+          }, {
+            desc: 'music',
+            color: '#ab3419'
+          }, {
+            name: 'theme',
+            color: 'rgb(245, 119, 0)'
+          }, {
+            name: 'wordpress',
+            color: '#24282d'
+          }, {
+            name: 'javascript',
+            color: '#f4c449'
+          }, {
+            name: 'wallpaper',
+            color: '#2c343d'
+          }, {
+            name: 'node',
+            icon: 'nodejs',
+            color: '#8dbb39'
+          }, {
+            name: 'angular',
+            icon: 'angularjs',
+            color: '#cc3427'
+          }, {
+            name: 'ngx',
+            icon: 'angularjs',
+            color: '#cc3427'
+          }
+        ]
+
+        const isIncludeName = key => project.name.toLowerCase().includes(key)
+        const isIncludeDesc = key => project.description.toLowerCase().includes(key)
+        const targetRule = iconRules.find(rule => {
+          const includeName = rule.name ? isIncludeName(rule.name) : false
+          const includeDesc = rule.desc ? isIncludeDesc(rule.desc) : false
+          return includeName || includeDesc
+        })
+
+        const targetIcon = targetRule
+                            ? (targetRule.icon || targetRule.name || targetRule.desc)
+                            : 'code'
+
+        const defaultColor = 'inherit'
+        const targetColor = targetRule ? targetRule.color || defaultColor : defaultColor
+
+        return { icon: `icon-${targetIcon}`, color: targetColor }
       }
     }
   }
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/mixins';
-  @import '~assets/sass/variables';
   .projects {
     min-height: 40em;
 
@@ -226,8 +274,13 @@
               font-weight: 400;
               color: $secondary;
 
+              &.star {
+                color: $text-light;
+                font-weight: bold;
+              }
+
               > .iconfont {
-                margin-right: .6rem;
+                margin-right: .3rem;
               }
             }
           }

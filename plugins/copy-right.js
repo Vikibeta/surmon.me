@@ -1,8 +1,12 @@
-/*
-** 只在生成模式的客户端中使用
-*/
+/**
+ * @file 复制拦截器 / ES module
+ * @module plugins/copy-right
+ * @author Surmon <https://github.com/surmon-china>
+ */
 
-if (process.env.NODE_ENV === 'production') {
+import { isBrowser } from '~/environment'
+
+if (isBrowser) {
  
   const copyText = () => {
     return [ '',
@@ -15,8 +19,6 @@ if (process.env.NODE_ENV === 'production') {
            ].join('\n')
   }
   
-
-
   // 拼接成html
   const buildText = content => {
     return content + copyText()
@@ -28,10 +30,12 @@ if (process.env.NODE_ENV === 'production') {
   }
 
   document.addEventListener('copy', e => {
-    if(!window.getSelection) return
-    const content = window.getSelection().toString()
-    e.clipboardData.setData('text/plain', buildText(content))
-    e.clipboardData.setData('text/html', buildHtml(content))
-    e.preventDefault()
+    if (!window.getSelection) return
+    if (!window.clickCopy) {
+      const content = window.getSelection().toString()
+      e.clipboardData.setData('text/plain', buildText(content))
+      e.clipboardData.setData('text/html', buildHtml(content))
+      e.preventDefault()
+    }
   })
 }

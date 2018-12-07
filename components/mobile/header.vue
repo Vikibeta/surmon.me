@@ -7,7 +7,7 @@
              class="input" 
              required 
              v-model.trim="keyword" 
-             placeholder="Search..." 
+             :placeholder="$i18n.text.search" 
              @keyup.enter.stop.prevent="toSearch">
       <span class="close" @click.stop.prevent="search = false">
         <i class="iconfont icon-cancel"></i>
@@ -19,9 +19,9 @@
           <a href="" class="navbar-menu" @click.stop.prevent="toggleSidebar(!mobileSidebar)">
             <i class="iconfont icon-menu"></i>
           </a>
-          <router-link to="/" class="navbar-logo">
+          <nuxt-link to="/" class="navbar-logo">
             <img src="/images/logo.svg">
-          </router-link>
+          </nuxt-link>
           <a href="" class="navbar-search" @click.stop.prevent="search = !search">
             <i class="iconfont icon-search"></i>
           </a>
@@ -63,14 +63,13 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/variables';
   header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: $navbar-height;
-    background-color: rgba($module-bg, .9);
+    background-color: $module-bg-opacity-9;
     z-index: 999;
 
     .search {
@@ -82,7 +81,7 @@
       left: 0;
       z-index: 9999;
       opacity: 0;
-      background-color: #fff;
+      background-color: $white;
       transform: translateY(-100%);
 
       > .input {

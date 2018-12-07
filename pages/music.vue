@@ -8,17 +8,17 @@
         <div class="circle-progress">
           <svg viewBox="0 0 100 100">
             <path class="circle-progress-circle-track" 
-                  :d="trackPath" 
                   stroke="rgba(197, 197, 197, 0.4)" 
-                  :stroke-width="relativeStrokeWidth" 
-                  fill="none">
+                  fill="none"
+                  :d="trackPath" 
+                  :stroke-width="relativeStrokeWidth" >
             </path>
             <path class="circle-progress-circle-path" 
-                  :d="trackPath" 
-                  stroke-linecap="bevel" 
                   stroke="rgba(190, 190, 190, 0.7)" 
-                  :stroke-width="relativeStrokeWidth" 
+                  stroke-linecap="bevel" 
                   fill="none" 
+                  :d="trackPath" 
+                  :stroke-width="relativeStrokeWidth" 
                   :style="circlePathStyle">
             </path>
           </svg>
@@ -47,24 +47,44 @@
       </button>
     </div>
     <div class="song-info">
-      <h3 v-if="currentSong">
-        <span>{{ currentSong.name }}</span>
-        <span> By </span>
-        <span v-for="artist in currentSong.artists">{{ artist.name }}</span>
-        <span> / </span>
-        <span>{{ currentSong.album.name || 'unknow' }}</span>
+      <h3 class="name">
+        <span v-if="currentSong">
+          <span>{{ currentSong.name }}</span>
+          <span> By </span>
+          <span :key="index" v-for="(artist, index) in currentSong.artists">{{ artist.name }}</span>
+          <span> / </span>
+          <span>{{ currentSong.album.name || 'unknow' }}</span>
+        </span>
+        <span v-else>Kind words are the music of the world.</span>
       </h3>
-      <h3 v-else>Kind words are the music of the world.</h3>
+      <p class="lrc">
+        <span v-if="currentSongLrc.fetching">歌词加载中...</span>
+        <span v-else>
+          <span v-if="!songLrcContent">暂无歌词</span>
+          <span v-else>
+            <span v-if="songLrcContent.version < 3">非滚动歌词，所以我就不显示了</span>
+            <span v-else>
+              <transition name="module" mode="out-in">
+                <span class="lrc-text" :key="currentTimeLrc" v-text="currentTimeLrc"></span>
+              </transition>
+            </span>
+          </span>
+        </span>
+      </p>
     </div>
   </div>
 </template>
 
 <script>
   import EventBus from '~/utils/event-bus'
+  import { isBrowser } from '~/environment'
+
   export default {
     name: 'music',
-    head: {
-      title: 'Music',
+    head() {
+      return {
+        title: `${this.langIsEn ? '' : this.$i18n.nav.music + ' | '}Music`
+      }
     },
     data() {
       return {
@@ -77,7 +97,7 @@
       }
     },
     mounted() {
-      if (process.browser) {
+      if (isBrowser) {
         this.updateScreenHeight()
         window.addEventListener('resize', this.updateScreenHeight)
       }
@@ -86,6 +106,9 @@
       window.removeEventListener('resize', this.updateScreenHeight)
     },
     computed: {
+      langIsEn() {
+        return this.$store.getters['option/langIsEn']
+      },
       player() {
         return EventBus.player.player
       },
@@ -95,29 +118,58 @@
       currentSong() {
         return EventBus.currentSong
       },
-      currentSongPicUrl() {
-        if (this.currentSong) {
-          let picUrl = this.currentSong.album.picUrl
-          return picUrl 
-                 ? picUrl.replace('http://', '/proxy/') + '?param=600y600' 
-                 : `${this.cdnUrl}/images/music-bg.jpg`
+      currentSongLrc() {
+        return EventBus.player.lrc
+      },
+      songLrcContent() {
+        const lrc = this.currentSongLrc.data
+        if (!lrc || lrc.nolyric) {
+          return null
         } else {
-          return `${this.cdnUrl}/images/music-bg.jpg`
+          return lrc.lrc
         }
+      },
+      songLrcArr() {
+        return this.songLrcContent.lyric.split('\n').map(timeSentence => {
+          let time = /\[([^\[\]]*)\]/.exec(timeSentence)
+          time = time && time.length && time[1]
+          time = time && time.split(':').map(t => Number(t))
+          time = time && time.length && time.length > 1 && time[0] * 60 + time[1]
+          time = time || ''
+          let sentence = /([^\]]+)$/.exec(timeSentence)
+          sentence = sentence && sentence.length && sentence[1]
+          sentence = sentence || ''
+          return { time, sentence }
+        }).filter(ts => ts.time)
+      },
+      currentTimeLrc() {
+        const currentTime = this.playerState.seek
+        if (!this.songLrcArr.length) {
+          return '无滚动歌词'
+        }
+        const targetSentence = this.songLrcArr.find((ts, i, a) => {
+          const next = a[i + 1]
+          return ts.time <= currentTime && next && next.time > currentTime
+        })
+        return targetSentence ? targetSentence.sentence : '...'
+      },
+      currentSongPicUrl() {
+        return EventBus.currentSongPicUrl
       },
       relativeStrokeWidth() {
         return (15 / 450 * 100).toFixed(1)
       },
       trackPath() {
-        var radius = parseInt(50 - parseFloat(this.relativeStrokeWidth) / 2, 10)
+        const radius = parseInt(50 - parseFloat(this.relativeStrokeWidth) / 2, 10)
         return `M 50 50 m 0 -${radius} a ${radius} ${radius} 0 1 1 0 ${radius * 2} a ${radius} ${radius} 0 1 1 0 -${radius * 2}`
       },
       perimeter() {
-        var radius = 50 - parseFloat(this.relativeStrokeWidth) / 2
-        return 2 * Math.PI * radius
+        const radius = 50 - parseFloat(this.relativeStrokeWidth) / 2
+        const result  = 2 * Math.PI * radius
+        return result
       },
       circlePathStyle() {
-        var perimeter = this.perimeter
+        const perimeter = this.perimeter
         return {
           strokeDasharray: `${perimeter}px,${perimeter}px`,
           strokeDashoffset: (1 - (this.playerState.progress) / 100) * perimeter + 'px',
@@ -135,24 +187,31 @@
           this.height = minHeight
         }
       },
+      checkPLayerState(action) {
+        this.playerState.ready && action()
+      },
       togglePlay() {
-        if (this.playerState.ready) {
-          this.player.togglePlay()
-        }
+        this.checkPLayerState(this.player.togglePlay)
       },
       toggleMuted() {
-        if (this.playerState.ready) {
-          this.player.toggleMuted()
-        }
+        this.checkPLayerState(this.player.toggleMuted)
       },
       prevSong() {
-        if (this.playerState.ready) {
-          this.player.prevSong()
-        }
+        this.checkPLayerState(this.player.prevSong)
       },
       nextSong() {
-        if (this.playerState.ready) {
-          this.player.nextSong()
+        this.checkPLayerState(this.player.nextSong)
+      },
+      getSongLrc(song_id) {
+        EventBus.getLrcFailure()
+        this.$store.dispatch('loadMuiscSongLrc', song_id)
+      }
+    },
+    watch: {
+      currentSong() {
+        const song = this.currentSong
+        if (song && song.id) {
+          this.getSongLrc(song.id)
         }
       }
     }
@@ -160,8 +219,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/mixins';
-  @import '~assets/sass/variables';
   .page {
     display: flex;
     justify-content: center;
@@ -252,7 +309,7 @@
             }
 
             > .iconfont {
-              color: #fff;
+              color: $text-reversal;
               font-size: 3em;
             }
           }
@@ -289,6 +346,24 @@
 
     > .song-info {
       text-align: center;
+      
+      > .name {
+        margin-bottom: 1em;
+      }
+
+      > .lrc {
+
+        @keyframes lrc-text {
+          0% { color: $primary }
+          33% { color: $red }
+          66% { color: $accent }
+        }
+
+        .lrc-text {
+          color: $primary;
+          // animation: lrc-text 5s linear infinite;
+        }
+      }
     }
   }
 </style>

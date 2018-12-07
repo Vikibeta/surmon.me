@@ -7,13 +7,19 @@
         <img src="/images/app-logo.png" alt="app-logo">
       </div>
       <h2 class="title">Surmon.me</h2>
-      <p class="desc">Talk is cheap. Show me the code</p>
+      <p class="desc" v-text="$i18n.text.slogan">Talk is cheap. Show me the code</p>
       <div class="screen">
         <img src="/images/app-hot.png" class="screen-img" alt="app-hot">
         <div class="download">
           <img src="/images/app-qrcode.png" class="qrcode" alt="qrcode">
-          <a target="_blank" href="https://static.surmon.me/app/surmon.me.apk" class="btn">Android</a>
-          <a target="_blank" href="https://static.surmon.me/app/surmon.me.ipa" class="btn">Ios</a>
+          <a target="_blank"
+             :href="`${cdnUrl}/app/surmon.me.apk`"
+             class="btn"
+             v-text="$i18n.text.device.android">Android</a>
+          <a target="_blank"
+             :href="`${cdnUrl}/app/surmon.me.ipa`"
+             class="btn"
+             v-text="$i18n.text.device.ios">Ios</a>
         </div>
       </div>
     </div>
@@ -23,8 +29,10 @@
 <script>
   export default {
     name: 'app',
-    head: {
-      title: 'App',
+    head() {
+      return {
+        title: `${this.langIsEn ? '' : this.$i18n.nav.app + ' | '}App`
+      }
     },
     data() {
       return {
@@ -32,6 +40,9 @@
       }
     },
     computed: {
+      langIsEn() {
+        return this.$store.getters['option/langIsEn']
+      },
       mobileLayout() {
         return this.$store.state.option.mobileLayout
       }
@@ -62,8 +73,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/mixins';
-  @import '~assets/sass/variables';
   .page {
     display: flex;
     justify-content: center;
@@ -141,7 +150,7 @@
 
         > .download {
           opacity: 0;
-          visible: hidden;
+          visibility: hidden;
           position: absolute;
           width: 100%;
           height: 100%;
@@ -160,18 +169,19 @@
 
           > .btn {
             width: 12rem;
-            height: 2.8rem;
-            line-height: 2.6rem;
+            line-height: 2.68rem;
             color: $primary;
-            background-color: $module-bg;
             margin-top: 2rem;
-            border:  1px solid $primary;
+            border:  1px solid;
+            border-color: $primary;
             text-align: center;
             text-transform: uppercase;
+            background: $module-bg;
 
             &:hover {
               color: $white;
-              background-color: rgba($primary, 0.9);
+              border-color: $primary-opacity-5;
+              background: linear-gradient(to bottom right, $module-hover-bg-opacity-3, $primary-opacity-9, $white, rgba($accent, .7));
             }
           }
         }

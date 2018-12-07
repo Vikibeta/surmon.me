@@ -3,9 +3,9 @@
     <div class="service">
       <div class="banner">
         <div class="banner-content container">
-          <h2 class="title">Talk is cheap. Show me the code</h2>
+          <h2 class="title" v-text="$i18n.text.service.slogan">Talk is cheap. Show me the code</h2>
           <div class="submit">
-            <button class="submit-btn" @click="submitProject">EMail me</button>
+            <button class="submit-btn"  v-text="$i18n.text.service.emailMe" @click="submitProject">EMail me</button>
           </div>
         </div>
       </div>
@@ -14,12 +14,12 @@
           <ul class="module-list">
             <li class="item">
               <p class="icon">
-                <i class="iconfont icon-wordpress"></i>
+                <i class="iconfont icon-web"></i>
               </p>
-              <p class="name">Wordpress</p>
-              <p class="desc">Wordpress 环境基建</p>
-              <p class="desc">Wordpress 整站建设</p>
-              <p class="desc">Wordpress 调优迭代</p>
+              <p class="name">Web Client</p>
+              <p class="desc">Vue 应用开发</p>
+              <p class="desc">React 应用开发</p>
+              <p class="desc">Angular 应用开发</p>
             </li>
             <li class="item">
               <p class="icon">
@@ -32,22 +32,13 @@
             </li>
             <li class="item">
               <p class="icon">
-                <i class="iconfont icon-javascript"></i>
-              </p>
-              <p class="name">Web Client</p>
-              <p class="desc">Vue 应用开发</p>
-              <p class="desc">React 应用开发</p>
-              <p class="desc">Angular 应用开发</p>
-             </li>
-            <li class="item">
-              <p class="icon">
                 <i class="iconfont icon-app"></i>
               </p>
               <p class="name">Application</p>
               <p class="desc">Weex 应用开发</p>
               <p class="desc">ReactNative 应用开发</p>
-              <p class="desc">Hybird App 应用开发</p>
-             </li>
+              <p class="desc">Electron 应用开发</p>
+            </li>
              <li class="item">
               <p class="icon">
                 <i class="iconfont icon-wechat"></i>
@@ -56,7 +47,16 @@
               <p class="desc">H5 开发</p>
               <p class="desc">公众号开发</p>
               <p class="desc">小程序开发</p>
-             </li>
+            </li>
+            <li class="item">
+              <p class="icon">
+                <i class="iconfont icon-consult"></i>
+              </p>
+              <p class="name">技术咨询</p>
+              <p class="desc">Vue 疑难杂症</p>
+              <p class="desc">业务与技术方案实施</p>
+              <p class="desc">Javascript 相关一切问题</p>
+            </li>
           </ul>
         </div>
       </div>
@@ -75,7 +75,7 @@
             </li>
             <li class="item">
               <p class="name">3. 预付开发</p>
-              <p class="desc">转账预付50%</p>
+              <p class="desc">转账预付50%或全部</p>
               <p class="desc">进入开发流程</p>
             </li>
             <li class="item">
@@ -93,7 +93,7 @@
       </div>
       <div class="rule">
         <div class="rule-content container">
-          <p class="text">不仿站，不设计，不比稿，单项目 2k 起，大型项目工期至多 1个月，仅程序实现；若能接受，请 EMail 我（可能是最好的 Web 开发者之一）</p>
+          <p class="text">设计、开发、运维，一切可支撑；需求不清、预算不足、结算不利，全部都拒绝；如果你需要一位出色省心的的全栈工程师，请 EMail 我；非常优秀，没有之一</p>
         </div>
       </div>
     </div>
@@ -103,11 +103,14 @@
 <script>
   export default {
     name: 'service',
-    head: {
-      title: 'Service'
+    head() {
+      return {
+        title: `${this.langIsEn ? '' : this.$i18n.nav.service + ' | '}Service`
+      }
     },
     methods: {
       submitProject() {
+        this.$ga.event('咨询邮件', '点击', 'tool')
         const subject = `嗨！Surmon，久仰大名！`
         const body = `我有一个需求：%0D%0A %0D%0A - 需求简述： %0D%0A %0D%0A - 需求文档：%0D%0A %0D%0A - 预算金额：%0D%0A %0D%0A - 预算周期：`
         let mailAddress = 'mailto:surmon@foxmail.com'
@@ -118,6 +121,9 @@
       }
     },
     computed: {
+      langIsEn() {
+        return this.$store.getters['option/langIsEn']
+      },
       mobileLayout() {
         return this.$store.state.option.mobileLayout
       }
@@ -126,8 +132,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/mixins';
-  @import '~assets/sass/variables';
   .page {
 
     &.mobile {
@@ -277,6 +281,7 @@
               }
 
               > .icon {
+                // background-color: $body-bg;
 
                 > .iconfont {
                   font-size: 4em;
@@ -284,7 +289,7 @@
               }
 
               > .name {
-                font-size: 1.5em;
+                font-size: 1.3em;
                 font-weight: bold;
               }
 
@@ -323,7 +328,7 @@
               }
 
               > .name {
-                font-size: 1.5em;
+                font-size: 1.2em;
                 font-weight: bold;
               }
 

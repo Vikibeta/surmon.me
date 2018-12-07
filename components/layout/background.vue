@@ -1,19 +1,32 @@
 <template>
   <div class="global-background">
     <div class="background-image"></div>
-    <div id="particles-background" class="background-canvas"></div>
+    <div id="particles-background" class="background-canvas" v-if="!powerSavingMode"></div>
   </div>
 </template>
 
 <script>
+  import { mapState } from 'vuex'
   export default {
     name: 'background',
     mounted() {
       this.buildBackground()
     },
+    computed: {
+      ...mapState('option', ['powerSavingMode'])
+    },
+    watch: {
+      powerSavingMode(on) {
+        if (!on) {
+          this.$nextTick(this.buildBackground)
+        }
+      }
+    },
     methods: {
       buildBackground() {
-        particlesJS('particles-background', {
+        // 暂时关闭动画
+        return false
+        window.particlesJS('particles-background', {
           "particles": {
             "number": {
               "value": 30,
@@ -129,7 +142,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/variables';
   .global-background {
     position: fixed;
     width: 100%;
@@ -137,9 +149,9 @@
     top: 0;
     left: 0;
     z-index: -1;
-    background-color: #eee;
+    background-color: $body-bg;
 
-    .background-image {
+    > .background-image {
       position: absolute;
       width: 100%;
       height: 100%;
@@ -147,7 +159,7 @@
       background: url(/images/background.png);
     }
 
-    .background-canvas {
+    > .background-canvas {
       position: absolute;
       width: 100%;
       height: 100%;

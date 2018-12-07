@@ -1,8 +1,12 @@
-/*
-** 只在生成模式的客户端中使用
-*/
+/**
+ * @file 图片弹窗服务 / ES module
+ * @module plugins/image-popup
+ * @author Surmon <https://github.com/surmon-china>
+ */
 
-if (process.browser) {
+import { isBrowser } from '~/environment'
+
+if (isBrowser) {
 
   // 销毁图片弹窗
   const closeImgPopup = () => {
@@ -11,9 +15,7 @@ if (process.browser) {
       window.onscroll = null
       mask.setAttribute('class', '')
       setTimeout(() => {
-        if (mask) {
-          document.body.removeChild(mask)
-        }
+        mask && document.body.removeChild(mask)
       }, 350)
     }
   }
@@ -27,7 +29,9 @@ if (process.browser) {
       image.setAttribute('class', className)
     }
     const oldMask = document.getElementById('image-popup')
-    if (oldMask) document.body.removeChild(oldMask)
+    if (oldMask) {
+      document.body.removeChild(oldMask)
+    }
     const mask = document.createElement('div')
     mask.setAttribute('id', 'image-popup')
     mask.appendChild(image)
@@ -38,7 +42,7 @@ if (process.browser) {
     // 监听滚动和点击事件
     window.onscroll = closeImgPopup
     mask.onclick = e => {
-      if (!Object.is(e.target.tagName, 'IMG')) {
+      if (e.target.tagName !== 'IMG') {
         closeImgPopup()
       }
     }

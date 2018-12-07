@@ -1,122 +1,174 @@
 <template>
   <div class="article" :class="{ mobile: mobileLayout }">
     <div class="detail">
+      <div class="oirigin"
+            v-if="!fetching && article.title"
+            :class="{
+              self: !article.origin,
+              other: article.origin === constants.ORIGIN_STATE.reprint,
+              hybrid: article.origin === constants.ORIGIN_STATE.hybrid
+            }">
+        <span
+          v-if="!article.origin"
+          v-text="$i18n.text.origin.original">原创</span>
+        <span
+          v-else-if="article.origin === constants.ORIGIN_STATE.reprint"
+          v-text="$i18n.text.origin.reprint">转载</span>
+        <span
+          v-else-if="article.origin === constants.ORIGIN_STATE.hybrid"
+          v-text="$i18n.text.origin.hybrid">混撰</span>
+      </div>
       <h2 class="title">{{ article.title || '...' }}</h2>
       <transition name="module" mode="out-in">
-        <empty-box class="article-empty-box" v-if="!fetching && !article.title">
-          <slot>No Result Article.</slot>
-        </empty-box>
-      </transition>
-      <transition name="module" mode="out-in">
-        <div class="content" v-html="articleContent" v-if="!fetching && article.content"></div>
+        <template v-if="!fetching">
+          <empty-box class="article-empty-box" v-if="!article.content">
+            <slot v-text="$i18n.text.article.empty"></slot>
+          </empty-box>
+          <div class="content" v-else v-html="articleContent"></div>
+        </template>
       </transition>
       <transition name="module" mode="out-in">
         <div class="readmore" v-if="canReadMore">
           <button class="readmore-btn" :disabled="readMoreLoading" @click="readMore()">
-            <span>{{ !readMoreLoading ? '阅读余下全文' : '渲染中...' }}</span>
+            <span>{{ readMoreLoading ? $i18n.text.article.rendering : $i18n.text.article.readAll }}</span>
             <i class="iconfont icon-next-bottom"></i>
           </button>
         </div>
       </transition>
     </div>
-    <share-box class="article-share" v-if="!fetching && article.content"></share-box>
     <transition name="module" mode="out-in">
-      <div class="metas" v-if="!fetching && article.title">
-        <p class="item">
-          <span>本文于</span>
-          <span>&nbsp;</span>
-          <router-link :title="buildDateTitle(article.create_at)"
-                       :to="buildDateLink(article.create_at)">
-            <span>{{ buildDateTitle(article.create_at) }}</span>
-          </router-link>
-          <span>&nbsp;发布在&nbsp;</span>
-          <router-link :key="index"
-                       :to="`/category/${category.slug}`"
-                       :title="category.description || category.name"
-                       v-for="(category, index) in article.category">
-            <span>{{ category.name }}</span>
-            <span v-if="article.category.length && article.category[index + 1]">、</span>
-          </router-link>
-          <span v-if="!article.category.length">未知</span>
-          <span>&nbsp;分类下，当前已被围观&nbsp;</span>
-          <span>{{ article.meta.views || 0 }}</span>
-          <span>&nbsp;次</span>
-        </p>
-        <p class="item">
-          <span>相关标签：</span>
-          <span v-if="!article.tag.length">无相关标签</span>
-          <router-link :key="index"
-                       :to="`/tag/${tag.slug}`"
-                       :title="tag.description || tag.name"
-                       v-for="(tag, index) in article.tag">
-            <span>{{ tag.name }}</span>
-            <span v-if="article.tag.length && article.tag[index + 1]">、</span>
-          </router-link>
-        </p>
-        <p class="item">
-          <span>永久地址：</span>
-          <span ref="copy_url_btn"
-                class="site-url"
-                :data-clipboard-text="`https://surmon.me/article/${this.article.id}`">
-                <span>https://surmon.me/article/{{ article.id }}</span>
-          </span>
-        </p>
-        <div class="item">
-          <span>版权声明：</span>
-          <span>自由转载-署名-非商业性使用</span>
-          <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
-          <a href="https://creativecommons.org/licenses/by-nc/3.0/cn/deed.zh"
-             target="_blank"
-             rel="external nofollow noopenter">Creative Commons BY-NC 3.0 CN</a>
-        </div>
+      <div class="ad" v-if="renderAd">
+        <adsense-article></adsense-article>
       </div>
     </transition>
-    <div class="related" v-if="article.related && article.related.length && !mobileLayout">
-      <div class="article-list swiper" v-swiper:swiper="swiperOption">
-        <div class="swiper-wrapper">
-          <div class="swiper-slide item" v-for="(article, index) in article.related" :key="index">
-            <router-link :to="`/article/${article.id}`" 
-                         :title="article.title" 
-                         class="item-box">
-              <img :src="buildThumb(article.thumb)" class="thumb" :alt="article.title">
-              <span class="title">{{ article.title }}</span>
-            </router-link>
-          </div>
-        </div>
+    <share-box class="article-share"></share-box>
+    <div class="metas">
+      <p class="item" v-if="languageIsEn">
+        <span>Article created at</span>
+        <span>&nbsp;</span>
+        <nuxt-link :title="buildDateTitle(article.create_at)" :to="buildDateLink(article.create_at)">
+          <span>{{ buildDateTitle(article.create_at) }}</span>
+        </nuxt-link>
+        <span>&nbsp;in category&nbsp;</span>
+        <nuxt-link
+          :key="index"
+          :to="`/category/${category.slug}`"
+          :title="category.description || category.name"
+          v-for="(category, index) in article.category">
+          <span>{{ category.name }}</span>
+          <span v-if="article.category.length && article.category[index + 1]">、</span>
+        </nuxt-link>
+        <span v-if="!article.category.length">no catgory</span>
+        <span>,&nbsp;&nbsp;</span>
+        <span>{{ article.meta.views || 0 }}</span>
+        <span>&nbsp;Views</span>
+      </p>
+      <p class="item" v-else>
+        <span>本文于</span>
+        <span>&nbsp;</span>
+        <nuxt-link :title="buildDateTitle(article.create_at)" :to="buildDateLink(article.create_at)">
+          <span>{{ buildDateTitle(article.create_at) }}</span>
+        </nuxt-link>
+        <span>&nbsp;发布在&nbsp;</span>
+        <span :key="index" v-for="(category, index) in article.category">
+          <nuxt-link :to="`/category/${category.slug}`" :title="category.description || category.name">
+            <span>{{ $i18n.nav[category.slug] }}</span>
+          </nuxt-link>
+          <span v-if="article.category.length && article.category[index + 1]">、</span>
+        </span>
+        <span v-if="!article.category.length">未知</span>
+        <span>&nbsp;分类下，当前已被围观&nbsp;</span>
+        <span>{{ article.meta.views || 0 }}</span>
+        <span>&nbsp;次</span>
+      </p>
+      <p class="item">
+        <span class="title" :class="language">{{ languageIsEn ? 'Related tags:' : '相关标签：' }}</span>
+        <span v-if="!article.tag.length" v-text="$i18n.text.tag.empty">无相关标签</span>
+        <span :key="index" v-for="(tag, index) in article.tag">
+          <nuxt-link :to="`/tag/${tag.slug}`" :title="tag.description || tag.name">
+            <span>{{ tag.name }}</span>
+          </nuxt-link>
+          <span v-if="article.tag.length && article.tag[index + 1]">、</span>
+        </span>
+      </p>
+      <p class="item">
+        <span class="title" :class="language">{{ languageIsEn ? 'Article Address:' : '永久地址：' }}</span>
+        <span class="site-url" @click="copyArticleUrl">
+          <span>https://surmon.me/article/{{ article.id }}</span>
+        </span>
+      </p>
+      <div class="item">
+        <span class="title" :class="language">{{ languageIsEn ? 'Copyright Clarify:' : '版权声明：' }}</span>
+        <span v-if="!languageIsEn">
+          <span>自由转载-署名-非商业性使用</span>
+          <span>&nbsp;&nbsp;|&nbsp;&nbsp;</span>
+        </span>
+        <a href="https://creativecommons.org/licenses/by-nc/3.0/cn/deed.zh"
+            target="_blank"
+            rel="external nofollow noopenter">Creative Commons BY-NC 3.0 CN</a>
       </div>
     </div>
-    <div class="related" v-if="article.related && article.related.length && mobileLayout">
-      <ul class="article-list">
-        <li class="item" v-for="(article, index) in article.related.slice(0, 8)" :key="index">
-          <router-link :to="`/article/${article.id}`" 
-                       :title="article.title + '- [ 继续阅读 ]'" 
-                       class="item-link">
-            <span class="title">《{{ article.title }}》- [ 继续阅读 ]</span>
-          </router-link>
-        </li>
-      </ul>
-    </div>
+    <transition name="module" mode="out-in">
+      <template v-if="article.related && article.related.length">
+        <div class="related" v-if="!mobileLayout">
+          <div class="article-list swiper" v-swiper:swiper="swiperOption">
+            <div class="swiper-wrapper">
+              <div class="swiper-slide item" v-for="(article, index) in articleRelateds" :key="index">
+                <a v-if="article.ad" class="item-box" :href="article.link" rel="external nofollow noopener" target="_blank">
+                  <img :src="article.img" class="thumb" :alt="article.title">
+                  <span class="title">{{ article.title }}</span>
+                </a>
+                <nuxt-link v-else :to="`/article/${article.id}`" :title="article.title" class="item-box">
+                  <img :src="buildThumb(article.thumb)" class="thumb" :alt="article.title">
+                  <span class="title">{{ article.title }}</span>
+                </nuxt-link>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="related" v-else>
+          <ul class="article-list">
+            <li class="item" v-for="(article, index) in articleRelateds" :key="index">
+              <a v-if="article.ad" class="item-link" :href="article.link" rel="external nofollow noopener" target="_blank">
+                <span class="sign">《</span>
+                <span class="title">{{ article.title }}</span>
+                <span class="sign">》</span>
+                <small class="tip">- 狠狠地阅读</small>
+              </a>
+              <nuxt-link v-else class="item-link" :to="`/article/${article.id}`" :title="`「 ${article.title} 」- 继续阅读`">
+                <span class="sign">《</span>
+                <span class="title">{{ article.title }}</span>
+                <span class="sign">》</span>
+                <small class="tip">- 继续阅读</small>
+              </nuxt-link>
+            </li>
+          </ul>
+        </div>
+      </template>
+    </transition>
     <div class="comment">
-      <comment-box :post-id="article.id"
-                   :likes="article.meta.likes"
-                   v-if="!fetching && article.title">
-      </comment-box>
+      <comment-box :post-id="article.id" :likes="article.meta.likes" />
     </div>
   </div>
 </template>
 
 <script>
-  import Clipboard from 'clipboard'
+  import { mapState } from 'vuex'
+  import adConfig from '~/ad.config'
   import marked from '~/plugins/marked'
   import ShareBox from '~/components/layout/share'
-
   export default {
     name: 'article-detail',
-    validate ({ params }) {
-      return (!!params.article_id && !Object.is(Number(params.article_id), NaN))
+    components: {
+      ShareBox
     },
-    fetch ({ store, params }) {
-      return store.dispatch('loadArticleDetail', params)
+    validate({ params, store }) {
+      return params.article_id && !isNaN(Number(params.article_id))
+    },
+    fetch({ store, params, error }) {
+      return store.dispatch('loadArticleDetail', params).catch(err => {
+        error({ statusCode: 404, message: '众里寻他 我已不再' })
+      })
     },
     head() {
       const article = this.article
@@ -131,45 +183,58 @@
         ]
       }
     },
+    mounted() {
+      this.updateAd()
+    },
     data() {
       return {
         swiperOption: {
-          autoplay: 3500,
-          setWrapperSize :true,
-          mousewheelControl : true,
-          autoplayDisableOnInteraction: false,
-          observeParents:true,
-          grabCursor : true,
-          slidesPerView: 'auto',
-          spaceBetween: 14
+          setWrapperSize: true,
+          simulateTouch: false,
+          mousewheel: {
+            sensitivity: 1,
+          },
+          autoplay: {
+            delay: 3500,
+            disableOnInteraction: false,
+          },
+          observeParents: true,
+          grabCursor: true,
+          slidesPerView: 'auto'
         },
         canReadMore: false,
         fullContentEd: false,
-        readMoreLoading: false
+        readMoreLoading: false,
+        renderAd: true
       }
     },
-    mounted() {
-      this.clipboard()
-    },
-    components: {
-      ShareBox
-    },
     computed: {
-      article() {
-        return this.$store.state.article.detail.data
+      ...mapState({
+        constants: state => state.option.constants,
+        language: state => state.option.language,
+        tags: state => state.tag.data,
+        imgExt: state => state.option.imgExt,
+        article: state => state.article.detail.data,
+        fetching: state => state.article.detail.fetching,
+        mobileLayout: state => state.option.mobileLayout,
+      }),
+      languageIsEn() {
+        return this.$store.getters['option/langIsEn']
       },
       articleContent() {
-        let content = this.article.content
-        if (!content) return ''
-        const hasTags = Object.is(this.tags.code, 1) && !!this.tags.data.length
+        const content = this.article.content
+        if (!content) {
+          return ''
+        }
+        const hasTags = this.tags.data && this.tags.data.length
         if (content.length > 13688 && !this.fullContentEd) {
           this.canReadMore = true
           let shortContent = content.substring(0, 11688)
-          let lastH4Index = shortContent.lastIndexOf('\n####')
-          let lastH3Index = shortContent.lastIndexOf('\n###')
-          let lastCodeIndex = shortContent.lastIndexOf('\n\n```')
-          let lastLineIndex = shortContent.lastIndexOf('\n\n**')
-          let lastReadindex = Math.max(lastH4Index, lastH3Index, lastCodeIndex, lastLineIndex);
+          const lastH4Index = shortContent.lastIndexOf('\n####')
+          const lastH3Index = shortContent.lastIndexOf('\n###')
+          const lastCodeIndex = shortContent.lastIndexOf('\n\n```')
+          const lastLineIndex = shortContent.lastIndexOf('\n\n**')
+          const lastReadindex = Math.max(lastH4Index, lastH3Index, lastCodeIndex, lastLineIndex);
           // console.log(lastH4Index, lastH3Index, lastCodeIndex, lastLineIndex, 'min', lastReadindex)
           shortContent = shortContent.substring(0, lastReadindex)
           return marked(shortContent, hasTags ? this.tags.data : false, true)
@@ -178,17 +243,11 @@
           return marked(content, hasTags ? this.tags.data : false, true)
         }
       },
-      fetching() {
-        return this.$store.state.article.detail.fetching
-      },
-      tags() {
-        return this.$store.state.tag.data
-      },
-      mobileLayout() {
-        return this.$store.state.option.mobileLayout
-      },
-      imgExt() {
-        return this.$store.state.option.imgExt
+      articleRelateds() {
+        const relateds = [...this.article.related].slice(0, 10)
+        const adArticle = adConfig.common.articleRelated(this.tags.data, this.mobileLayout)
+        adArticle && relateds.splice(2, 0, adArticle)
+        return relateds
       }
     },
     methods: {
@@ -200,9 +259,16 @@
           }, 0)
         })
       },
-      clipboard() {
+      updateAd() {
+        this.renderAd = false
+        this.$nextTick(() => {
+          this.renderAd = true
+        })
+      },
+      copyArticleUrl() {
         if (this.article.title) {
-          this.clipboard = new Clipboard(this.$refs.copy_url_btn)
+          // console.log('要复制了', `https://surmon.me/article/${this.article.id}`, this.$root.$copyToClipboard)
+          this.$root.$copyToClipboard(`https://surmon.me/article/${this.article.id}`)
         }
       },
       buildThumb(thumb) {
@@ -210,18 +276,28 @@
         return `${thumb}?imageView2/1/w/300/h/230/format/${this.imgExt}/interlace/1/q/80|imageslim`
       },
       buildDateTitle(date) {
-        if (!date) return date
+        if (!date) {
+          return date
+        }
         date = new Date(date)
-        return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()} ${date.getHours() > 11 ? '下午' : '上午'}`
+        const am = this.languageIsEn ? 'AM' : '上午'
+        const pm = this.languageIsEn ? 'PM' : '下午'
+        const year = date.getFullYear()
+        const month = date.getMonth() + 1
+        const day = date.getDate()
+        const meridiem = date.getHours() > 11 ? pm : am
+        return `${year}/${month}/${day} ${meridiem}`
       },
       buildDateLink(date) {
-        if (!date) return date
+        if (!date) {
+          return date
+        }
         date = new Date(date)
-        let year = date.getFullYear()
+        const year = date.getFullYear()
         let month = (date.getMonth() + 1).toString()
         let day = date.getDate().toString()
-        month = Object.is(month.length, 1) ? `0${month}` : month
-        day = Object.is(day.length, 1) ? `0${day}` : day
+        month = month.length === 1 ? `0${month}` : month
+        day = day.length === 1 ? `0${day}` : day
         return `/date/${year}-${month}-${day}`
       }
     }
@@ -229,18 +305,22 @@
 </script>
 
 <style lang="scss">
-  @import '~assets/sass/mixins';
-  @import '~assets/sass/variables';
   .article {
 
     &.mobile {
 
       > .metas {
-        padding: 1em;
         line-height: 2.3em;
 
         > .item {
           margin: 0;
+          padding: 0;
+          border: none;
+
+          > .title.en {
+            width: auto;
+            margin-right: 1rem;
+          }
         }
       }
 
@@ -257,17 +337,30 @@
           > .item {
 
             > .item-link {
-              display: block;
+              display: flex;
               width: 100%;
               height: 2.2em;
               line-height: 2.2em;
-              @include text-overflow();
+
+              > .title {
+                max-width: 70%;
+                display: inline-block;
+                @include text-overflow();
+              }
+
+              > .tip {
+                display: inline-block;
+              }
             }
           }
         }
       }
 
       > .detail {
+
+        > .oirigin {
+          font-size: $font-size-base;
+        }
 
         > .content {
 
@@ -283,6 +376,7 @@
     }
 
     > .detail,
+    > .ad,
     > .metas,
     > .related {
       margin-bottom: 1em;
@@ -291,11 +385,45 @@
 
     > .detail {
       padding: 1em 2em;
+      position: relative;
+      overflow: hidden;
+
+      > .oirigin {
+        position: absolute;
+        top: -0.9rem;
+        left: -2.4rem;
+        transform: rotate(-45deg);
+        width: 7rem;
+        height: 4rem;
+        line-height: 5.8rem;
+        text-align: center;
+        transform-origin: center;
+        color: $white;
+        font-weight: bold;
+        font-size: $font-size-small;
+        text-transform: uppercase;
+
+        &.self {
+          background-color: rgba($accent, .8);
+        }
+
+        &.other {
+          background-color: rgba($red, .8);
+        }
+
+        &.hybrid {
+          background-color: rgba($primary, .8);
+        }
+      }
 
       > .title {
         text-align: center;
         margin: 1em 0 1.5em 0;
         font-weight: 700;
+      }
+
+      > .article-empty-box {
+        min-height: 16rem;
       }
 
       > .content {
@@ -385,7 +513,7 @@
             padding: .5em .8em;
 
             &:hover {
-              background-color: rgba(230, 230, 230, 0.7);
+              background-color: $module-hover-bg;
             }
 
             > p {
@@ -545,21 +673,26 @@
     }
 
     .article-share {
-      padding: .8em;
+      padding: 1em;
       margin-bottom: 1em;
       background-color: $module-bg;
-
-      > .share-box {
-      }
     }
 
     > .metas {
-      padding: 1em 1.5em;
+      padding: 1em;
 
       > .item {
+        border-left: solid .5em $body-bg;
+        padding-left: 1rem;
+        word-break: break-all;
 
         a:hover {
           text-decoration: underline;
+        }
+
+        > .title.en {
+          width: 11rem;
+          display: inline-block;
         }
 
         .site-url {
@@ -589,6 +722,11 @@
 
           > .swiper-slide.item {
             width: auto;
+            margin-right: 1rem;
+
+            &:last-child {
+              margin-right: 0;
+            }
 
             > .item-box {
               display: block;
@@ -602,8 +740,12 @@
 
                 .thumb {
                   opacity: 1;
-                  @include css3-prefix(transform, scale(1.2) rotate(3deg));
+                  @include css3-prefix(transform, scale(1.2) rotate(2deg));
                   @include css3-prefix(transition, all 1s);
+                }
+
+                > .title {
+                  opacity: 1;
                 }
               }
 
@@ -621,10 +763,10 @@
                 width: calc(100% - 1em);
                 height: 2em;
                 line-height: 2em;
-                background-color: rgba(165, 165, 165, 0.5);
+                background-color: $module-hover-bg-darken-10;
                 padding: 0 .5em;
-                color: white;
-                opacity: .8;
+                color: $white;
+                opacity: .4;
                 font-size: .9em;
                 text-align: center;
                 overflow: hidden;

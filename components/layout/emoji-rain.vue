@@ -6,17 +6,19 @@
 </template>
 
 <script>
-  import EventBus from '~/utils/event-bus'
+  import eventBus from '~/utils/event-bus'
+  import { isBrowser } from '~/environment'
+
   export default {
     name: 'global-emoji-rain',
     computed: {
       emoji233333() {
-        return EventBus.emoji233333
+        return eventBus.emoji233333
       }
     },
     methods: {
       buildEmojiBase() {
-        if (process.browser) {
+        if (isBrowser) {
           const emojiBase = this.$refs.emoji
           emojiBase.width = document.documentElement.clientWidth || document.body.clientWidth
           emojiBase.height = document.documentElement.clientHeight || document.body.clientHeight
@@ -28,8 +30,7 @@
             density: 5,
             staggered: true
           })
-          EventBus.emoji233333 = emoji233333
-          this.$root.$EventBus = EventBus
+          eventBus.emoji233333 = emoji233333
         }
       }
     },
@@ -40,7 +41,6 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/variables';
  
   .global-emoji-rain {
     position: fixed;

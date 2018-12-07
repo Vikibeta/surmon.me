@@ -1,106 +1,185 @@
 <template>
-  <div id="app" v-cloak>
-    <div id="app-aside" v-if="mobileLayout" :class="{ open: mobileSidebar }">
-      <mobile-aside :class="{ open: mobileSidebar }"></mobile-aside>
+  <div id="app" :class="theme" v-cloak>
+    <div id="app-tools">
+      <input type="text" v-model="clipboardText" class="clipboard-input" ref="clipboard" />
     </div>
-    <div id="app-main" :class="{ open: mobileSidebar }" @click="closeMobileSidebar">
-      <emojo-rain></emojo-rain>
-      <background v-if="!mobileLayout"></background>
-      <barrage v-if="!mobileLayout && barrageMounted" v-cloak></barrage>
-      <transition name="fade">
-        <webrtc v-if="!mobileLayout && openWebrtc" v-cloak></webrtc>
-      </transition>
-      <header-view v-if="!mobileLayout"></header-view>
-      <mobile-header v-if="mobileLayout"></mobile-header>
+    <div id="app-aside" v-if="mobileLayout" :class="mobileSidebarOpenClass">
+      <mobile-aside :class="mobileSidebarOpenClass" />
+    </div>
+    <div id="app-main" :class="mobileSidebarOpenClass" @click="closeMobileSidebar">
+
+      <!-- header -->
+      <header-view v-if="!mobileLayout" />
+      <mobile-header v-else />
+
+      <!-- common pc full -->
+      <template v-if="!mobileLayout">
+        <no-ssr>
+          <!-- <cursor-box /> -->
+          <background />
+          <barrage v-if="barrageMounted" v-cloak />
+          <wall-flower-box v-if="!powerSavingMode" />
+          <transition name="fade">
+            <webrtc v-if="!powerSavingMode && openWebrtc" v-cloak />
+          </transition>
+        </no-ssr>
+        <transition name="fade">
+          <wallpaper-wall v-if="openWallpaper" v-cloak />
+        </transition>
+      </template>
+
+      <!-- pc and mobile -->
+      <emojo-rain v-if="!powerSavingMode" />
+
+      <!-- main -->
       <main id="main" :class="{ 'mobile': mobileLayout, [$route.name]: true }">
         <transition name="module">
-          <keep-alive>
-            <nav-view v-if="!errorColumn && !mobileLayout"></nav-view>
-          </keep-alive>
+          <nav-view v-if="!errorColumn && !mobileLayout" keep-alive />
         </transition>
         <div id="main-content" 
              class="main-content" 
-             :class="{ 
-               'full-column': fullColumn, 
+             :class="{
+               'full-column': fullColumn,
                'error-column': errorColumn,
                'mobile-layout': mobileLayout,
                [$route.name]: true
               }">
-          <keep-alive>
-            <nuxt></nuxt>
-          </keep-alive>
+          <nuxt />
         </div>
         <transition name="aside">
-          <keep-alive>
-            <aside-view v-if="!fullColumn && !errorColumn && !mobileLayout"></aside-view>
-          </keep-alive>
+          <aside-view v-if="!fullColumn && !errorColumn && !mobileLayout" keep-alive />
         </transition>
       </main>
-      <tool-view v-if="!mobileLayout && !['app', 'music', 'service'].includes($route.name)"></tool-view>
-      <share-view class="sidebar-share" v-if="!mobileLayout && !['service'].includes($route.name)"></share-view>
-      <footer-view v-if="!mobileLayout"></footer-view>
-      <mobile-footer v-else></mobile-footer>
+
+      <!-- common pc -->
+      <template v-if="!mobileLayout">
+        <theme-view v-if="!powerSavingMode" @theme="setTheme" />
+        <share-view class="sidebar-share" v-if="isNotServicePage" />
+        <language-psm v-if="isNotServicePage" />
+        <wallpaper-switch v-if="isNotServicePage" />
+        <tool-box v-if="isNotFullColPage" />
+      </template>
+
+      <!-- footer -->
+      <footer-view v-if="!mobileLayout" />
+      <mobile-footer v-else />
     </div>
   </div>
 </template>
 
 <script>
-  import consoleSlogan from '~/utils/console-slogan'
+  import { mapState } from 'vuex'
+  import eventBus from '~/utils/event-bus'
+  import * as utilsLocalStorage from '~/utils/local-storage'
   import { MobileHeader, MobileFooter, MobileAside } from '~/components/mobile'
-  import { Background, EmojoRain, Barrage, Webrtc, Header, Footer, Aside, Share, Tool, Nav } from '~/components/layout'
+  import {
+    WallpaperSwitch,
+    WallpaperWall,
+    Background,
+    EmojoRain,
+    LanguagePsm,
+    ToolBox,
+    Barrage,
+    Webrtc,
+    Header,
+    Footer,
+    Aside,
+    // Cursor,
+    Share,
+    Theme,
+    Nav
+  } from '~/components/layout'
   export default {
     name: 'app',
     head() {
       return !this.mobileLayout ? {} : {
         bodyAttrs: {
-          class: 'mobile' 
+          class: 'mobile'
         }
       }
     },
+    data() {
+      return {
+        theme: 'default',
+        clipboardText: ''
+      }
+    },
     mounted() {
-      this.watchTabActive()
-      // this.watchFullScreen()
       if (!this.mobileLayout) {
+        this.setHistoryTheme()
+        this.$store.dispatch('loadWallpapers')
+        this.$store.dispatch('loadWallpaperStory')
         this.$store.dispatch('loadMuiscPlayerList')
       }
-      consoleSlogan()
+      // this.watchFullScreen()
+      this.watchTabActive()
+      this.$root.$eventBus = eventBus
+      this.$root.$copyToClipboard = this.copyToClipboard
     },
     components: {
       Webrtc,
       Barrage,
+      ToolBox,
       EmojoRain,
+      LanguagePsm,
+      WallpaperWall,
+      WallpaperSwitch,
       Background,
+      // // CursorBox: Cursor,
       HeaderView: Header,
       FooterView: Footer,
       AsideView: Aside,
       ShareView: Share,
-      ToolView: Tool,
+      ThemeView: Theme,
       NavView: Nav,
       MobileHeader,
       MobileFooter,
       MobileAside
     },
     computed: {
-      openWebrtc() {
-        return this.$store.state.option.openWebrtc
+      ...mapState('option', [
+        'openWebrtc',
+        'openWallpaper',
+        'powerSavingMode',
+        'barrageMounted',
+        'fullColumn',
+        'errorColumn',
+        'mobileLayout',
+        'mobileSidebar'
+      ]),
+      mobileSidebarOpenClass() {
+        return { open: this.mobileSidebar }
       },
-      barrageMounted() {
-        return this.$store.state.option.barrageMounted
+      isPcAndNotPsm() {
+        return !this.mobileLayout && !this.powerSavingMode
       },
-      fullColumn () {
-        return this.$store.state.option.fullColumn
+      isNotServicePage() {
+        return this.$route.name !== 'service'
       },
-      errorColumn () {
-        return this.$store.state.option.errorColumn
-      },
-      mobileLayout() {
-        return this.$store.state.option.mobileLayout
-      },
-      mobileSidebar() {
-        return this.$store.state.option.mobileSidebar
+      isNotFullColPage() {
+        return !['app', 'music', 'service'].includes(this.$route.name)
       }
     },
     methods: {
+      setHistoryTheme() {
+        const historyTheme = utilsLocalStorage.get('theme')
+        const theme = historyTheme || this.theme
+        this.setTheme(theme)
+      },
+      setTheme(theme) {
+        this.theme = theme
+        utilsLocalStorage.set('theme', theme)
+      },
+      copyToClipboard(text) {
+        this.clipboardText = text
+        // 维护中间量用于给拦截器做标识
+        window.clickCopy = true
+        setTimeout(() => {
+          this.$refs.clipboard.select()
+          document.execCommand('Copy')
+          window.clickCopy = false
+        })
+      },
       closeMobileSidebar() {
         if (this.mobileLayout) {
           this.$store.commit('option/SET_MOBILE_SIDEBAR', false)
@@ -119,7 +198,7 @@
       },
       watchFullScreen() {
         const fullscreenchange = event => {
-          console.log('fullscreenchange', event)
+          // console.log('fullscreenchange', event)
         }
         document.addEventListener("fullscreenchange", fullscreenchange, false)
         document.addEventListener("mozfullscreenchange", fullscreenchange, false)
@@ -131,13 +210,17 @@
 </script>
 
 <style lang="scss" scoped>
-  @import '~assets/sass/mixins';
-  @import '~assets/sass/variables';
   #app {
+    color: $text;
 
     &[v-cloak] {
       color: transparent;
       -webkit-text-fill-color: transparent;
+    }
+
+    #app-tools {
+      height: 0px;
+      opacity: 0;
     }
 
     #app-aside {
